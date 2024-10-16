@@ -22,17 +22,26 @@ class ArtistController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        //
-    }
+     public function create()
+     {
+       return view('artist.create');
+     }
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+     public function store(Request $request)
+     {
+        //Validation des données du formulaire
+        $validated = $request->validate([
+            'firstname' => 'required|max:60',
+            'lastname' => 'required|max:60',
+        ]);
+        $artist = new Artist();
+        //Assignation des données et sauvegarde dans la base de données
+        $artist->firstname = $validated['firstname'];
+        $artist->lastname = $validated['lastname'];
+        $artist->save();
+}
     /**
      * Display the specified resource.
      */
