@@ -7,7 +7,7 @@
         <meta charset="utf-8">
 
         <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
-
+        
     </head>
 
     <body>
@@ -20,4 +20,4 @@
 
     </body>
 
-</html> 
+</html>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use App\Models\Artist;
 
 class ArtistController extends Controller
@@ -24,6 +25,9 @@ class ArtistController extends Controller
      */
      public function create()
      {
+       if (!Gate::allows('create-artist')) {
+       abort(403);
+     }
        return view('artist.create');
      }
     /**
@@ -31,6 +35,9 @@ class ArtistController extends Controller
      */
      public function store(Request $request)
      {
+       if (!Gate::allows('update-artist')) {
+         abort(403);
+       }
         //Validation des données du formulaire
         $validated = $request->validate([
             'firstname' => 'required|max:60',
@@ -58,16 +65,22 @@ class ArtistController extends Controller
      */
     public function edit($id)
     {
+      if (!Gate::allows('update-artist')) {
+           abort(403);
+       }
       $artist = Artist::find($id);
-        return view('artist.edit',[
-       'artist' => $artist,
-     ]);
+      return view('artist.edit',[
+      'artist' => $artist,
+      ]);
     }
     /**
      * Update the specified resource in storage.
      */
      public function update(Request $request, $id)
     {
+      if (!Gate::allows('update-artist')) {
+           abort(403);
+       }
    //Validation des données du formulaire
         $validated = $request->validate([
             'firstname' => 'required|max:60',
@@ -79,6 +92,9 @@ class ArtistController extends Controller
      */
      public function destroy($id)
     {
+      if (!Gate::allows('delete-artist')) {
+           abort(403);
+       }
         $artist = Artist::find($id);
         if($artist) {
             $artist->delete();

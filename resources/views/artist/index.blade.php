@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('title', 'Liste des artistes')
 
@@ -6,7 +6,7 @@
 
     <h1>Liste des {{ $resource }}</h1>
     <ul>
-      <li><a href="{{ route('artist.create') }}">Ajouter</a></li>     
+      <li><a href="{{ route('artist.create') }}">Ajouter</a></li>
     </ul>
      <table>
         <thead>
