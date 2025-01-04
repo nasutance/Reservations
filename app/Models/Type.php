@@ -19,7 +19,7 @@ class Type extends Model
   *
   * @var string
   */
-  protected $table = 'type';
+  protected $table = 'types';
   /**
   * Indicates if the model should be timestamped.
   *

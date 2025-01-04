@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('types', function (Blueprint $table) {
-            $table->id();
-            $table->string('type',60);
+        Schema::create('localities', function (Blueprint $table) {
+            $table->string('postal_code',6)->primary();
+            $table->string('locality',60);
         });
     }
 
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('types');
+        Schema::dropIfExists('localities');
     }
 };

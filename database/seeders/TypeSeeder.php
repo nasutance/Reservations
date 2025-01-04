@@ -18,6 +18,6 @@ class TypeSeeder extends Seeder
       ['type'=>'scénographe'],
       ['type'=>'auteur'],
     ];
-    DB::table('type')->insert($types);
+    DB::table('types')->insert($types);
   }
 }

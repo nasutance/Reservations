@@ -52,7 +52,6 @@ Route::middleware('auth')->group(function () {
         ->where('id', '[0-9]+')
         ->name('artist.delete');
 });
-
 Route::get('/type', [TypeController::class, 'index'])->name('type.index');
 Route::get('/type/{id}', [TypeController::class, 'show'])
-        ->where('id', '[0-9]+')->name('type.show');
+        ->where('id', '[0-9]+')->name('type.show');

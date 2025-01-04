@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             ArtistSeeder::class,
             UserSeeder::class,
             TypeSeeder::class,
+            PriceSeeder::class,
+            RoleSeeder::class,
+            LocalitySeeder::class,
         ]);
     }
 }
