@@ -71,4 +71,8 @@ class Show extends Model
       return $this->belongsToMany(ArtistType::class);
     }
 
+    public function prices(): BelongsToMany
+    {
+      return $this->belongsToMany(Price::class);
+    }
   }

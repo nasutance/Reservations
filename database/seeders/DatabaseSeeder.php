@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             ArtistTypeSeeder::class,
             ArtistTypeShowSeeder::class,
+            PriceShowSeeder::class,
         ]);
     }
 }
