@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ReservationSeeder::class,
             LocationSeeder::class,
             ShowSeeder::class,
+            RepresentationSeeder::class,
         ]);
     }
 }
