@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Price; 
+use App\Models\Price;
 
 class PriceController extends Controller
 {
@@ -15,6 +15,7 @@ class PriceController extends Controller
       $types = Price::all();
       return view('price.index',[
         'prices' => $prices,
+        ]);
     }
 
     /**

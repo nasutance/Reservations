@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Locality;
 
 class LocalityController extends Controller
 {
@@ -11,7 +12,10 @@ class LocalityController extends Controller
      */
     public function index()
     {
-        //
+      $localities = Locality::all();
+      return view('locality.index',[
+        'localities' => $localities,
+      ]);
     }
 
     /**
@@ -33,10 +37,13 @@ class LocalityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+     public function show(string $id)
+     {
+       $locality = Locality::find($id);
+       return view('locality.show',[
+         'locality' => $locality,
+       ]);
+     }
 
     /**
      * Show the form for editing the specified resource.
