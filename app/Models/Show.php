@@ -60,5 +60,14 @@ class Show extends Model
     public function reviews(): HasMany
     {
       return $this->hasMany(Review::class);
+    }
+
+    /**
+    * Get the performances (artists in a type of collaboration) for the show
+    */
+    public function artistTypes(): BelongsToMany
+    {
+      return $this->belongsToMany(ArtistType::class);
     } 
+
   }
