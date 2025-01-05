@@ -15,17 +15,30 @@ class PriceShowSeeder extends Seeder
      */
     public function run(): void
     {
+        // Désactiver les vérifications des clés étrangères
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('price_show')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // Define data
-        $data = [];
-
+        // Récupérer les shows et les prix valides
         $shows = Show::all();
-        $prices = Price::whereNull('end_date')->get(); // end_date null only
+        $prices = Price::where('end_date', '>=', now()->format('Y-m-d'))
+                       ->orWhereNull('end_date')
+                       ->get();
 
-        // Add each valid price to each show
+        // Vérifier si des données sont disponibles
+        if ($shows->isEmpty()) {
+            $this->command->warn('Aucun show disponible dans la base. Seeder annulé.');
+            return;
+        }
+
+        if ($prices->isEmpty()) {
+            $this->command->warn('Aucun prix valide disponible dans la base. Seeder annulé.');
+            return;
+        }
+
+        // Préparer les données à insérer
+        $data = [];
         foreach ($shows as $show) {
             foreach ($prices as $price) {
                 $data[] = [
@@ -35,7 +48,9 @@ class PriceShowSeeder extends Seeder
             }
         }
 
-        // Insert data in the table
+        // Insérer les données dans la table
         DB::table('price_show')->insert($data);
+
+        $this->command->info('Données insérées dans la table price_show.');
     }
 }
