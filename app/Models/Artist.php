@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Artist extends Model
 
@@ -28,4 +28,12 @@ class Artist extends Model
      * @var bool
      */
     public $timestamps = false; /*Par défaut, Laravel crée des champs created_at et updated_at dans la table. Pour empêcher cela, vous pouvez assigner la valeur false à la propriété $timestamps.*/
+    /**
+    * The types that belong to the artist.
+    */
+
+    public function types(): BelongsToMany
+    {
+      return $this->belongsToMany(Type::class);
+    }
 }
