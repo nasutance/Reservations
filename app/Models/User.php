@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -57,4 +58,10 @@ class User extends Authenticatable
     {
       return $this->hasMany(Reservation::class);
     }
+
+    public function reviews(): HasMany
+    {
+      return $this->hasMany(Review::class);
+    }
+
 }
