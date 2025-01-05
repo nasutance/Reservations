@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Location extends Model
+class Show extends Model
 {
     use HasFactory;
     /**
@@ -17,11 +16,13 @@ class Location extends Model
     protected $fillable =
     [
       'slug',
-      'designation',
-      'address',
-      'locality_postal_code',
-      'website',
-      'phone',
+      'title',
+      'description',
+      'poster_url',
+      'duration',
+      'created_in',
+      'location_postal_code',
+      'bookable',
     ];
 
     /**
@@ -30,27 +31,20 @@ class Location extends Model
     * @var string
     */
 
-    protected $table = 'locations';
+    protected $table = 'shows';
     /**
     * Indicates if the model should be timestamped.
     *
     * @var bool
     */
 
-    public $timestamps = false;
+    public $timestamps = true;
     /**
-    * Get the locality that owns the location
+    * Get the main location of the show
     */
-    public function locality(): BelongsTo
+    public function location(): BelongsTo
     {
-      return $this->belongsTo(Locality::class);
+      return $this->belongsTo(Location::class);
     }
-    /**
-    * Get the shows in this location.
-    */
 
-    public function shows(): HasMany
-    {
-      return $this->hasMany(Show::class);
-    } 
   }

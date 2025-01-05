@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
             PriceSeeder::class,
             RoleSeeder::class,
             LocalitySeeder::class,
+            ReservationSeeder::class,
+            LocationSeeder::class,
+            ShowSeeder::class,
         ]);
     }
 }
