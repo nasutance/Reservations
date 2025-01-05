@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             ArtistTypeShowSeeder::class,
             PriceShowSeeder::class,
             RepresentationReservationSeeder::class,
+            RoleUserSeeder::class,
         ]);
     }
 }

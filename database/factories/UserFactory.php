@@ -34,7 +34,6 @@ class UserFactory extends Factory
             'created_at' => now(),
             'updated_at' => null,
             'langue' => fake()->randomElement(['fr', 'nl', 'en']), // Correction ici
-            'role' => fake()->randomElement(['member', 'affiliate', 'press']), // Correction ici
         ];
     }
 
