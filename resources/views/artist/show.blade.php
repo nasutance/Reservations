@@ -6,15 +6,25 @@
 
     <h1>{{ $artist->firstname }} {{ $artist->lastname }}</h1>
 
-    <div><a href="{{ route('artist.edit' ,$artist->id) }}">Modifier</a></div>
+    <h2>Liste des types</h2>
+    <ul>
+        @foreach($artist->types as $type)
+            <li>{{ $type->type }}</li>
+        @endforeach
+    </ul>
+
+    <div>
+        <a href="{{ route('artist.edit', $artist->id) }}">Modifier</a>
+    </div>
 
     <form method="post" action="{{ route('artist.delete', $artist->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ?')">
-      @csrf
-      @method('DELETE')
-      <button>Supprimer</button>
-
+        @csrf
+        @method('DELETE')
+        <button>Supprimer</button>
     </form>
 
-    <nav><a href="{{ route('artist.index') }}">Retour à l'index</a></nav>
+    <nav>
+        <a href="{{ route('artist.index') }}">Retour à l'index</a>
+    </nav>
 
 @endsection
