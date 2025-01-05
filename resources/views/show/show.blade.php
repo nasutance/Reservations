@@ -9,9 +9,7 @@
 
     @if($show->poster_url)
         <p>
-            <img src="{{ asset('images/'.$show->poster_url) }}"
-                 alt="{{ $show->title }}"
-                 width="200">
+            <img src="{{ asset('images/'.$show->poster_url) }}" alt="{{ $show->title }}" width="200">
         </p>
     @else
         <canvas width="200" height="100" style="border:1px solid #000000;"></canvas>
@@ -28,6 +26,26 @@
         <p><em>Réservable</em></p>
     @else
         <p><em>Non réservable</em></p>
+    @endif
+
+    <h2>Liste des représentations</h2>
+    @if($show->representations->count() >= 1)
+        <ul>
+            @foreach ($show->representations as $representation)
+                <li>
+                    {{ $representation->schedule }}
+                    @if($representation->location)
+                        ({{ $representation->location->designation }})
+                    @elseif($representation->show->location)
+                        ({{ $representation->show->location->designation }})
+                    @else
+                        (lieu à déterminer)
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    @else
+        <p>Aucune représentation</p>
     @endif
 </article>
 
