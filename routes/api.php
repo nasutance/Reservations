@@ -1,9 +1,12 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\ArtistController;
 
-Route::middleware('auth:sanctum')->group(function () {
-  //Crée automatiquement les routes /api/artists/{id}
-  Route::apiResource('artists', ArtistController::class);
-});
+Route::get('/user', function (Request $request) {
+  return $request->user();
+})->middleware('auth:sanctum');
+
+Route::apiResource('artists', ArtistController::class)
+->middleware('auth.basic');

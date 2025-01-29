@@ -23,6 +23,10 @@ class ArtistController extends Controller
      */
      public function store(Request $request)
      {
+       if (!Gate::allows('update-artist')) {
+         return response()->json(["error"=>"Action non autorisée."],403);
+       }
+
          $validated = $request->validate([
              'firstname' => 'required|max:60',
              'lastname' => 'required|max:60',
@@ -53,6 +57,9 @@ class ArtistController extends Controller
      */
      public function update(Request $request, $id)
      {
+       if (!Gate::allows('update-artist')) {
+         return response()->json(["error"=>"Action non autorisée."],403);
+       }
          $artist = Artist::find($id);
 
          if (!$artist) {
@@ -75,6 +82,9 @@ class ArtistController extends Controller
      */
      public function destroy($id)
      {
+       if (!Gate::allows('delete-artist')) {
+         return response()->json(["error"=>"Action non autorisée."],403);
+       }
          $artist = Artist::find($id);
 
          if (!$artist) {

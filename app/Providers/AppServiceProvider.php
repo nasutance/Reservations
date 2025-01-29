@@ -12,14 +12,26 @@ class AppServiceProvider extends ServiceProvider
     public function register(){}
 
     public function boot(){
-          Gate::define('create-artist', function (User $user) {
-            return $user->role === 'admin';});
-          Gate::define('update-artist', function (User $user) {
-            return $user->role === 'admin';
-          });
-          Gate::define('delete-artist', function (User $user) {
-            return $user->role === 'admin';
-          });
+
+      Gate::define('index-artist', function (User $user) {
+        return $user->role === 'admin' or $user->role === 'member';
+      });
+
+      Gate::define('show-artist', function (User $user) {
+        return $user->role === 'admin' or $user->role === 'member';
+      });
+
+      Gate::define('create-artist', function (User $user) {
+        return $user->role === 'admin';
+      });
+
+      Gate::define('update-artist', function (User $user) {
+        return $user->role === 'admin';
+      });
+
+      Gate::define('delete-artist', function (User $user) {
+        return $user->role === 'admin';
+      });
 
           // Charger les routes API
           Route::middleware('api')
