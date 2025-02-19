@@ -13,10 +13,12 @@ class ArtistController extends Controller
      */
      public function index()
      {
-     $artists = Artist::all();
+     $artists = Artist::all()->map(function ($artist) {
+       return $this->formatArtistWithLinks($artist);
+     });
+
      return response()->json($artists, 200, [], JSON_UNESCAPED_UNICODE);
      }
-
 
     /**
      * Store a newly created resource in storage.
@@ -34,8 +36,8 @@ class ArtistController extends Controller
 
          $artist = Artist::create($validated);
 
-         return response()->json($artist, 201);
-     }
+         return response()->json($this->formatArtistWithLinks($artist), 201);
+       }
 
 
     /**
@@ -48,9 +50,8 @@ class ArtistController extends Controller
          if (!$artist) {
              return response()->json(['message' => 'Artist not found'], 404);
          }
-
-         return response()->json($artist, 200);
-     }
+         return response()->json($this->formatArtistWithLinks($artist), 200);
+       }
 
     /**
      * Update the specified resource in storage.
@@ -73,8 +74,8 @@ class ArtistController extends Controller
 
          $artist->update($validated);
 
-         return response()->json($artist, 200);
-     }
+         return response()->json($this->formatArtistWithLinks($artist), 200);
+       }
 
 
     /**
@@ -96,4 +97,30 @@ class ArtistController extends Controller
          return response()->json(['message' => 'Artist deleted'], 200);
      }
 
+     // Méthode pour formater un artiste avec des liens hypermédia
+     // Facilite la découverte des actions disponibles sur une ressource.
+     // Permet aux clients de naviguer dans l’API dynamiquement sans devoir coder en dur les URLs.
+     // Encourage une approche RESTful plus complète.
+
+     private function formatArtistWithLinks(Artist $artist)
+     {
+       return [
+         'id' => $artist->id,
+         'firstname' => $artist->firstname,
+         'lastname' => $artist->lastname,
+         '_links' => [ // Tableau de liens HATEOAS
+           'self' => [ // Donne l’URL permettant de récupérer les détails de cet artiste (GET /artists/{id})
+             'href' => route('artists.show', ['artist' => $artist->id]),
+           ],
+           'update' => [ // Fournit l’URL pour mettre à jour cet artiste (PUT /artists/{id})
+             'href' => route('artists.update', ['artist' => $artist->id]),
+             'method' => 'PUT',
+           ],
+           'delete' => [ // Fournit l’URL pour supprimer cet artiste (DELETE /artists/{id})
+             'href' => route('artists.destroy', ['artist' => $artist->id]),
+             'method' => 'DELETE',
+           ],
+         ],
+       ];
+     }
 }
