@@ -23,7 +23,7 @@ class Show extends Model
       'poster_url',
       'duration',
       'created_in',
-      'location_postal_code',
+      'location_id',
       'bookable',
     ];
 

@@ -33,6 +33,16 @@ class AppServiceProvider extends ServiceProvider
         return $user->role === 'admin';
       });
 
+      Gate::define('manage-shows', function (User $user) {
+        return $user->roles->contains('role', 'admin'); // Seuls les admins peuvent gérer les spectacles
+      });
+
+      Gate::define('view-shows', function (User $user) {
+        return $user->roles->contains('role', 'member') ||
+               $user->roles->contains('role', 'admin') ||
+               $user->roles->contains('role', 'press');
+             });
+
           // Charger les routes API
           Route::middleware('api')
           ->prefix('api')
