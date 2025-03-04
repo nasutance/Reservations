@@ -42,8 +42,10 @@ class Reservation extends Model
     return $this->belongsTo(User::class);
   }
 
-  public function representations(): BelongsToMany
+  public function representations()
   {
-    return $this->belongsToMany(Representation::class);
-  } 
+      return $this->belongsToMany(Representation::class, 'representation_reservation')
+          ->withPivot('unit_price', 'quantity');
+  }
+
 }

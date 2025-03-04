@@ -6,6 +6,7 @@ use App\Http\Controllers\API\ArtistController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\API\ShowController;
+use App\Http\Controllers\API\ReservationController;
 
 Route::post('/login', function (Request $request) {
   $request->validate([
@@ -34,4 +35,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
   Route::apiResource('artists', ArtistController::class);
   Route::apiResource('shows', ShowController::class);
+  Route::apiResource('reservations', ReservationController::class);
 });
