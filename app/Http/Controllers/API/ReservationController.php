@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
@@ -16,43 +15,70 @@ class ReservationController extends Controller
     {
         $user = $request->user();
 
-        // Un admin peut voir toutes les réservations, un membre voit uniquement les siennes
+        // Un admin voit toutes les réservations, un membre voit seulement les siennes
         if (Gate::allows('view-all-reservations')) {
-            return response()->json(Reservation::all(), 200);
+            return response()->json(Reservation::with('representations.show')->get(), 200);
         }
 
-        return response()->json($user->reservations, 200);
+        return response()->json($user->reservations()->with('representations.show')->get(), 200);
     }
 
     /**
-    * Récupérer une réservation spécifique
-    */
+     * Récupérer une seule réservation
+     */
     public function show(Request $request, Reservation $reservation)
     {
-      if ($request->user()->id !== $reservation->user_id && !Gate::allows('view-all-reservations')) {
-          return response()->json(['message' => 'Accès interdit'], 403);
-      }
+        if ($request->user()->id !== $reservation->user_id && !Gate::allows('view-all-reservations')) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
 
-      return response()->json($reservation, 200);
+        return response()->json($reservation->load('representations.show'), 200);
     }
 
-
     /**
-     * Créer une nouvelle réservation
+     * Créer une réservation
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-          'representation_id' => 'required|exists:representations,id',
-          'quantity' => 'required|integer|min:1',
-        ]);
 
-        $reservation = Reservation::create([
+     public function store(Request $request)
+     {
+        $validated = $request->validate([
+        'representation_id' => 'required|exists:representations,id',
+        'price_id' => 'required|exists:prices,id',
+        'quantity' => 'required|integer|min:1',
+      ]);
+
+      $representation = \App\Models\Representation::find($validated['representation_id']);
+      if (!$representation) {
+        return response()->json(['message' => 'Représentation non trouvée'], 404);
+      }
+
+      $show = $representation->show;
+
+      // Vérifier si le prix est bien associé à ce show via price_show
+      $validPriceForShow = \App\Models\PriceShow::where('show_id', $show->id)
+                                              ->where('price_id', $validated['price_id'])
+                                              ->exists();
+
+      // Vérifier si c'est un prix libre (exception)
+      $isSpecialPrice = \App\Models\Price::find($validated['price_id'])->is_special ?? false;
+
+      if (!$validPriceForShow && !$isSpecialPrice) {
+        return response()->json(['message' => 'Ce prix n’est pas valide pour ce spectacle.'], 400);
+      }
+
+      // Création de la réservation
+      $reservation = Reservation::create([
           'user_id' => $request->user()->id,
           'status' => 'en attente',
-        ]);
+      ]);
 
-        return response()->json($reservation, 201);
+      // Attacher la représentation avec le prix choisi et la quantité
+      $reservation->representations()->attach($validated['representation_id'], [
+          'price_id' => $validated['price_id'], // On stocke price_id dans la table pivot
+        'quantity' => $validated['quantity']
+      ]);
+
+      return response()->json($reservation->load('representations'), 201);
     }
 
     /**
@@ -65,12 +91,14 @@ class ReservationController extends Controller
         }
 
         $validated = $request->validate([
-            'date' => 'sometimes|date|after_or_equal:today',
+            'quantity' => 'sometimes|integer|min:1',
         ]);
 
-        $reservation->update($validated);
+        $reservation->representations()->updateExistingPivot($reservation->representations->first()->id, [
+            'quantity' => $validated['quantity']
+        ]);
 
-        return response()->json($reservation, 200);
+        return response()->json($reservation->load('representations'), 200);
     }
 
     /**

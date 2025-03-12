@@ -48,7 +48,7 @@ class RepresentationReservationSeeder extends Seeder
                 $data[] = [
                     'representation_id' => $repres->id,
                     'reservation_id' => $res->id,
-                    'unit_price' => $prices->random()->price,
+                    'price_id' => $prices->random()->id,
                     'quantity' => rand(1, 5),
                 ];
             }

@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::create('representation_reservation', function (Blueprint $table) {
             $table->foreignId('representation_id');
             $table->foreignId('reservation_id');
-            $table->decimal('unit_price', 10, 2);
+
             $table->tinyInteger('quantity')->default(1);
+
+            $table->foreignId('price_id')
+                ->constrained('prices')
+                ->onDelete('cascade');
 
             $table->foreign('representation_id')
                 ->references('id')
