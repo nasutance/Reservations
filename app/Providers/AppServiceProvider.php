@@ -34,8 +34,13 @@ class AppServiceProvider extends ServiceProvider
       });
 
       Gate::define('manage-shows', function (User $user) {
-        return $user->roles->contains('role', 'admin'); // Seuls les admins peuvent gérer les spectacles
+        return $user->roles()->where('role', 'admin')->exists();
       });
+
+      Gate::define('manage-representations', function (User $user) {
+        return $user->roles()->where('role', 'admin')->exists();
+      });
+
 
       Gate::define('view-shows', function (User $user) {
         return $user->roles->contains('role', 'member') ||

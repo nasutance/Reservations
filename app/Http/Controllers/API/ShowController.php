@@ -34,7 +34,7 @@ class ShowController extends Controller
             'poster_url' => 'nullable|url',
             'duration' => 'required|integer|min:1',
             'created_in' => 'required|integer|min:1800|max:' . date('Y'),
-            'location_id' => 'required|integer|max:10',
+            'location_id' => 'required|exists:locations,id',
             'bookable' => 'required|boolean'
         ]);
 
@@ -76,7 +76,7 @@ class ShowController extends Controller
             'poster_url' => 'nullable|url',
             'duration' => 'sometimes|integer|min:1',
             'created_in' => 'sometimes|integer|min:1800|max:' . date('Y'),
-            'location_id' => 'sometimes|integer|max:10',
+            'location_id' => 'sometimes|integer|exists:locations,id',
             'bookable' => 'sometimes|boolean'
         ]);
 

@@ -36,4 +36,5 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::apiResource('artists', ArtistController::class);
   Route::apiResource('shows', ShowController::class);
   Route::apiResource('reservations', ReservationController::class);
+  Route::apiResource('representations', RepresentationController::class);
 });

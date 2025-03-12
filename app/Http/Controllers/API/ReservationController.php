@@ -1,117 +1,119 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
-use Illuminate\Support\Facades\Gate;
+use App\Models\Representation;
+use App\Models\Price;
 
 class ReservationController extends Controller
 {
     /**
-     * Récupérer toutes les réservations de l'utilisateur connecté
+     * Lister les réservations de l'utilisateur authentifié
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-
-        // Un admin voit toutes les réservations, un membre voit seulement les siennes
-        if (Gate::allows('view-all-reservations')) {
-            return response()->json(Reservation::with('representations.show')->get(), 200);
-        }
-
-        return response()->json($user->reservations()->with('representations.show')->get(), 200);
+        $reservations = $request->user()->reservations()->with(['representations', 'representations.show'])->get();
+        return response()->json($reservations);
     }
 
     /**
-     * Récupérer une seule réservation
+     * Voir une réservation spécifique de l'utilisateur
      */
-    public function show(Request $request, Reservation $reservation)
+    public function show(Request $request, $id)
     {
-        if ($request->user()->id !== $reservation->user_id && !Gate::allows('view-all-reservations')) {
-            return response()->json(['message' => 'Accès interdit'], 403);
+        $reservation = $request->user()->reservations()->with(['representations', 'representations.show'])->find($id);
+
+        if (!$reservation) {
+            return response()->json(['message' => 'Réservation introuvable.'], 404);
         }
 
-        return response()->json($reservation->load('representations.show'), 200);
+        return response()->json($reservation);
     }
 
     /**
-     * Créer une réservation
+     * Créer une nouvelle réservation pour l'utilisateur
      */
-
-     public function store(Request $request)
-     {
-        $validated = $request->validate([
-        'representation_id' => 'required|exists:representations,id',
-        'price_id' => 'required|exists:prices,id',
-        'quantity' => 'required|integer|min:1',
-      ]);
-
-      $representation = \App\Models\Representation::find($validated['representation_id']);
-      if (!$representation) {
-        return response()->json(['message' => 'Représentation non trouvée'], 404);
-      }
-
-      $show = $representation->show;
-
-      // Vérifier si le prix est bien associé à ce show via price_show
-      $validPriceForShow = \App\Models\PriceShow::where('show_id', $show->id)
-                                              ->where('price_id', $validated['price_id'])
-                                              ->exists();
-
-      // Vérifier si c'est un prix libre (exception)
-      $isSpecialPrice = \App\Models\Price::find($validated['price_id'])->is_special ?? false;
-
-      if (!$validPriceForShow && !$isSpecialPrice) {
-        return response()->json(['message' => 'Ce prix n’est pas valide pour ce spectacle.'], 400);
-      }
-
-      // Création de la réservation
-      $reservation = Reservation::create([
-          'user_id' => $request->user()->id,
-          'status' => 'en attente',
-      ]);
-
-      // Attacher la représentation avec le prix choisi et la quantité
-      $reservation->representations()->attach($validated['representation_id'], [
-          'price_id' => $validated['price_id'], // On stocke price_id dans la table pivot
-        'quantity' => $validated['quantity']
-      ]);
-
-      return response()->json($reservation->load('representations'), 201);
-    }
-
-    /**
-     * Modifier une réservation (seulement par l'utilisateur qui l'a créée)
-     */
-    public function update(Request $request, Reservation $reservation)
+    public function store(Request $request)
     {
-        if ($request->user()->id !== $reservation->user_id) {
-            return response()->json(['message' => 'Accès interdit'], 403);
-        }
-
         $validated = $request->validate([
-            'quantity' => 'sometimes|integer|min:1',
+            'representation_id' => 'required|exists:representations,id',
+            'price_id' => 'required|exists:prices,id',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        $reservation->representations()->updateExistingPivot($reservation->representations->first()->id, [
+        $representation = Representation::find($validated['representation_id']);
+        if (!$representation) {
+            return response()->json(['message' => 'Représentation non trouvée.'], 404);
+        }
+
+        $show = $representation->show;
+        $validPriceForShow = $show->prices()->where('id', $validated['price_id'])->exists();
+        $isSpecialPrice = Price::find($validated['price_id'])->is_special ?? false;
+
+        if (!$validPriceForShow && !$isSpecialPrice) {
+            return response()->json(['message' => 'Ce prix n’est pas valide pour ce spectacle.'], 400);
+        }
+
+        // Création de la réservation
+        $reservation = Reservation::create([
+            'user_id' => $request->user()->id,
+            'status' => 'en attente',
+        ]);
+
+        // Lier la représentation et le prix choisi
+        $reservation->representations()->attach($validated['representation_id'], [
+            'price_id' => $validated['price_id'],
             'quantity' => $validated['quantity']
         ]);
 
-        return response()->json($reservation->load('representations'), 200);
+        return response()->json($reservation->load('representations.show'), 201);
     }
 
     /**
-     * Supprimer une réservation (seulement par l'utilisateur qui l'a créée ou un admin)
+     * Modifier une réservation existante (ex: changer la quantité)
      */
-    public function destroy(Request $request, Reservation $reservation)
+     public function update(Request $request, $id)
+     {
+         $validated = $request->validate([
+             'representation_id' => 'required|exists:representations,id',
+             'quantity' => 'required|integer|min:1',
+         ]);
+
+         $reservation = $request->user()->reservations()->find($id);
+         if (!$reservation) {
+             return response()->json(['message' => 'Réservation introuvable.'], 404);
+         }
+
+         // Vérifier si la représentation est bien liée à cette réservation
+         if (!$reservation->representations()->where('representation_id', $validated['representation_id'])->exists()) {
+             return response()->json(['message' => 'Cette représentation n’est pas liée à cette réservation.'], 400);
+         }
+
+         // Mettre à jour la quantité dans la table pivot `representation_reservation`
+         $reservation->representations()->updateExistingPivot($validated['representation_id'], [
+             'quantity' => $validated['quantity']
+         ]);
+
+         return response()->json($reservation->load(['representations' => function ($query) {
+             $query->withPivot('quantity', 'price_id');
+         }]));
+     }
+
+    /**
+     * Annuler une réservation (soft delete)
+     */
+    public function destroy($id)
     {
-        if ($request->user()->id !== $reservation->user_id && !Gate::allows('delete-any-reservation')) {
-            return response()->json(['message' => 'Accès interdit'], 403);
+        $reservation = Reservation::find($id);
+
+        if (!$reservation || $reservation->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Réservation introuvable ou non autorisée.'], 404);
         }
 
         $reservation->delete();
-
-        return response()->json(['message' => 'Réservation supprimée'], 200);
+        return response()->json(['message' => 'Réservation annulée avec succès.']);
     }
 }
