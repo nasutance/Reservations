@@ -9,13 +9,32 @@ use Illuminate\Support\Facades\Gate;
 
 class ShowController extends Controller
 {
-    /**
-     * Récupérer tous les spectacles (avec relations)
-     */
-    public function index()
-    {
-        return response()->json(Show::with(['location', 'representations', 'reviews', 'artistTypes', 'prices'])->get(), 200);
-    }
+
+     //Récupérer tous les spectacles (avec relations)
+     public function index(Request $request)
+     {
+         $query = Show::query();
+
+         // Filtrer par artiste si `?artist=` est présent
+         if ($request->has('artist')) {
+     $artistName = $request->query('artist');
+     $query->whereHas('artistTypes.artist', function ($q) use ($artistName) {
+         $q->whereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%$artistName%"]);
+     });
+ }
+
+
+         // Filtrer par lieu si `?location=` est présent
+         if ($request->has('location')) {
+       $locationName = $request->query('location');
+       $query->whereHas('location.locality', function ($q) use ($locationName) {
+           $q->where('locality', 'like', "%$locationName%");
+       });
+   }
+
+
+         return response()->json($query->get(), 200);
+     }
 
     /**
      * Ajouter un nouveau spectacle
@@ -45,14 +64,44 @@ class ShowController extends Controller
     /**
      * Afficher un spectacle spécifique
      */
-    public function show($id)
-    {
-        $show = Show::with(['location', 'representations', 'reviews', 'artistTypes', 'prices'])->find($id);
-        if (!$show) {
-            return response()->json(['message' => 'Spectacle non trouvé'], 404);
-        }
-        return response()->json($show, 200);
-    }
+     public function show(Request $request, $id)
+     {
+         $relations = explode(',', $request->query('include', 'representations,prices'));
+
+         // Vérifier si l'utilisateur demande aussi les artistes et types
+         $includeArtistTypes = in_array('artistTypes', $relations);
+
+         $show = Show::with($relations)->find($id);
+
+         if (!$show) {
+             return response()->json(['message' => 'Spectacle non trouvé'], 404);
+         }
+
+         // Charger les artistes et types associés au spectacle si demandé
+         if ($includeArtistTypes) {
+             $show->load(['artistTypes.artist:id,firstname,lastname', 'artistTypes.type:id,type']);
+
+             // Transformer la structure pour ne garder que l'essentiel
+             $show->artists = $show->artistTypes->map(function ($artistType) {
+                 return [
+                     'id' => $artistType->artist->id,
+                     'firstname' => $artistType->artist->firstname,
+                     'lastname' => $artistType->artist->lastname,
+                     'type' => [
+                         'id' => $artistType->type->id,
+                         'name' => $artistType->type->type,
+                     ]
+                 ];
+             });
+
+             // Supprimer la relation intermédiaire `artistTypes` du JSON
+             unset($show->artistTypes);
+         }
+
+         return response()->json($show, 200);
+     }
+
+
 
     /**
      * Modifier un spectacle

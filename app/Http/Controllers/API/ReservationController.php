@@ -7,32 +7,56 @@ use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Representation;
 use App\Models\Price;
+use Illuminate\Support\Facades\Gate;
+use App\Models\User;
 
 class ReservationController extends Controller
 {
     /**
      * Lister les réservations de l'utilisateur authentifié
      */
-    public function index(Request $request)
-    {
-        $reservations = $request->user()->reservations()->with(['representations', 'representations.show'])->get();
-        return response()->json($reservations);
-    }
+     public function index(Request $request)
+   {
+       $query = $request->user()->reservations()->with(['representations.show']);
 
-    /**
+       // Vérifier si l'utilisateur est admin via les Gates
+       if (Gate::allows('view-all-reservations')) {
+           $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
+       }
+
+       // Filtrer par statut (`?status=Payée`)
+       if ($request->has('status')) {
+           $query->where('status', $request->query('status'));
+       }
+
+       return response()->json($query->get(), 200);
+   }
+      /**
      * Voir une réservation spécifique de l'utilisateur
      */
-    public function show(Request $request, $id)
-    {
-        $reservation = $request->user()->reservations()->with(['representations', 'representations.show'])->find($id);
+     public function show(Request $request, $id)
+ {
+     $reservation = Reservation::with('representations.show')->find($id);
 
-        if (!$reservation) {
-            return response()->json(['message' => 'Réservation introuvable.'], 404);
-        }
+     if (!$reservation) {
+         return response()->json(['message' => 'Réservation introuvable.'], 404);
+     }
 
-        return response()->json($reservation);
-    }
+     // Vérifier si l'utilisateur a le droit de voir cette réservation (admin ou propriétaire)
+     if ($request->user()->id !== $reservation->user_id && !Gate::allows('view-all-reservations')) {
+         return response()->json(['message' => 'Accès interdit.'], 403);
+     }
 
+     // Si `?include=total_price` est dans l'URL, on calcule le total
+     if ($request->query('include') === 'total_price') {
+     $totalPrice = $reservation->representations->sum(function ($representation) {
+         return $representation->pivot->quantity * Price::where('id', $representation->pivot->price_id)->value('price');
+     });
+
+     $reservation->total_price = number_format($totalPrice, 2, '.', '');
+ }
+     return response()->json($reservation);
+ }
     /**
      * Créer une nouvelle réservation pour l'utilisateur
      */
@@ -75,45 +99,56 @@ class ReservationController extends Controller
     /**
      * Modifier une réservation existante (ex: changer la quantité)
      */
-     public function update(Request $request, $id)
-     {
-         $validated = $request->validate([
-             'representation_id' => 'required|exists:representations,id',
-             'quantity' => 'required|integer|min:1',
-         ]);
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'representation_id' => 'required|exists:representations,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
 
-         $reservation = $request->user()->reservations()->find($id);
-         if (!$reservation) {
-             return response()->json(['message' => 'Réservation introuvable.'], 404);
-         }
+        $reservation = Reservation::find($id);
 
-         // Vérifier si la représentation est bien liée à cette réservation
-         if (!$reservation->representations()->where('representation_id', $validated['representation_id'])->exists()) {
-             return response()->json(['message' => 'Cette représentation n’est pas liée à cette réservation.'], 400);
-         }
+        if (!$reservation) {
+            return response()->json(['message' => 'Réservation introuvable.'], 404);
+        }
 
-         // Mettre à jour la quantité dans la table pivot `representation_reservation`
-         $reservation->representations()->updateExistingPivot($validated['representation_id'], [
-             'quantity' => $validated['quantity']
-         ]);
+        // Vérifier l'autorisation avec la Gate
+        if (!Gate::allows('update-reservation', $reservation)) {
+            return response()->json(['message' => 'Modification interdite.'], 403);
+        }
 
-         return response()->json($reservation->load(['representations' => function ($query) {
-             $query->withPivot('quantity', 'price_id');
-         }]));
-     }
+        // Vérifier si la représentation est bien liée à cette réservation
+        if (!$reservation->representations()->where('representation_id', $validated['representation_id'])->exists()) {
+            return response()->json(['message' => 'Cette représentation n’est pas liée à cette réservation.'], 400);
+        }
+
+        // Mettre à jour la quantité dans la table pivot `representation_reservation`
+        $reservation->representations()->updateExistingPivot($validated['representation_id'], [
+            'quantity' => $validated['quantity']
+        ]);
+
+        return response()->json($reservation->load(['representations' => function ($query) {
+            $query->withPivot('quantity', 'price_id');
+        }]));
+    }
 
     /**
      * Annuler une réservation (soft delete)
      */
     public function destroy($id)
     {
-        $reservation = Reservation::find($id);
+      $reservation = Reservation::find($id);
 
-        if (!$reservation || $reservation->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Réservation introuvable ou non autorisée.'], 404);
-        }
+      if (!$reservation) {
+          return response()->json(['message' => 'Réservation introuvable.'], 404);
+      }
 
-        $reservation->delete();
-        return response()->json(['message' => 'Réservation annulée avec succès.']);
+      // Vérifier l'autorisation avec la Gate
+      if (!Gate::allows('delete-reservation', $reservation)) {
+          return response()->json(['message' => 'Annulation interdite.'], 403);
+      }
+
+      $reservation->delete();
+      return response()->json(['message' => 'Réservation annulée avec succès.']);
     }
 }

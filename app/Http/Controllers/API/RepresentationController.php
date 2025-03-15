@@ -12,10 +12,29 @@ class RepresentationController extends Controller
     /**
      * Récupérer toutes les représentations
      */
-    public function index()
-    {
-        return response()->json(Representation::with(['show', 'location'])->get(), 200);
-    }
+     public function index(Request $request)
+     {
+         $query = Representation::query();
+
+         // Filtrer par spectacle (`?show=Ayiti`)
+         if ($request->has('show')) {
+             $showTitle = $request->query('show');
+             $query->whereHas('show', function ($q) use ($showTitle) {
+                 $q->where('title', 'like', "%$showTitle%");
+             });
+         }
+
+         // Filtrer par localisation (`?location=Bruxelles`)
+         if ($request->has('location')) {
+             $locationName = $request->query('location');
+             $query->whereHas('location.locality', function ($q) use ($locationName) {
+                 $q->where('locality', 'like', "%$locationName%");
+             });
+         }
+
+         return response()->json($query->with(['show', 'location'])->get(), 200);
+     }
+
 
     /**
      * Ajouter une nouvelle représentation
@@ -39,14 +58,29 @@ class RepresentationController extends Controller
     /**
      * Afficher une représentation spécifique
      */
-    public function show($id)
-    {
-        $representation = Representation::with(['show', 'location'])->find($id);
-        if (!$representation) {
-            return response()->json(['message' => 'Représentation non trouvée'], 404);
-        }
-        return response()->json($representation, 200);
-    }
+     public function show(Request $request, $id)
+   {
+       $representation = Representation::with(['show', 'location'])->find($id);
+
+       if (!$representation) {
+           return response()->json(['message' => 'Représentation non trouvée.'], 404);
+       }
+
+       // Ajouter un lien vers les réservations sans afficher les détails
+       $representation->reservations_links = $representation->reservations->map(function ($reservation) {
+           return [
+               'id' => $reservation->id,
+               'link' => route('reservations.show', ['reservation' => $reservation->id])
+           ];
+       });
+
+       // Supprimer la relation brute `reservations`
+       unset($representation->reservations);
+
+       return response()->json($representation);
+   }
+
+
 
     /**
      * Modifier une représentation

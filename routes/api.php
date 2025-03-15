@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\API\ShowController;
 use App\Http\Controllers\API\ReservationController;
+use App\Http\Controllers\API\RepresentationController;
 
 Route::post('/login', function (Request $request) {
   $request->validate([
