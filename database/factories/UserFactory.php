@@ -24,7 +24,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'login' => Str::lower(fake()->unique()->lastName()),
+            'login' => Str::lower(fake()->unique()->lastName()) . rand(1000, 9999),
             'firstname' => fake()->firstName(),
             'lastname' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

@@ -3,12 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_profile_page_is_displayed(): void
     {
@@ -28,7 +28,10 @@ class ProfileTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->patch('/profile', [
-                'name' => 'Test User',
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'login' => 'johndoe123',
+                'langue' => 'fr',
                 'email' => 'test@example.com',
             ]);
 
@@ -38,20 +41,27 @@ class ProfileTest extends TestCase
 
         $user->refresh();
 
-        $this->assertSame('Test User', $user->name);
+        $this->assertSame('John', $user->firstname);
+        $this->assertSame('Doe', $user->lastname);
+        $this->assertSame('johndoe123', $user->login);
+        $this->assertSame('fr', $user->langue);
         $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
 
         $response = $this
             ->actingAs($user)
             ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => $user->email,
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'login' => 'johndoe123',
+                'langue' => 'fr',
+                'email' => $user->email, // L'email ne change pas
             ]);
 
         $response
@@ -63,7 +73,9 @@ class ProfileTest extends TestCase
 
     public function test_user_can_delete_their_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'password' => bcrypt('password'),
+        ]);
 
         $response = $this
             ->actingAs($user)
@@ -81,7 +93,9 @@ class ProfileTest extends TestCase
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'password' => bcrypt('password'),
+        ]);
 
         $response = $this
             ->actingAs($user)
