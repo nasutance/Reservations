@@ -10,23 +10,22 @@ class Locality extends Model
 {
     use HasFactory;
 
-    protected  $fillable = [
-      'postal_code',
-      'locality',
+    protected $fillable = [
+        'postal_code',
+        'locality',
     ];
 
     protected $table = 'localities';
 
     protected $primaryKey = 'postal_code';
+    public $incrementing = false; // indispensable car ta clé est un string
+    protected $keyType = 'string'; // indispensable
 
     public $timestamps = false;
 
-    /**
-    * Get the locations for the locality.
-    */
-
+    // Relation corrigée
     public function locations(): HasMany
     {
-      return $this->hasMany(Location::class);
+        return $this->hasMany(Location::class, 'locality_postal_code', 'postal_code');
     }
 }

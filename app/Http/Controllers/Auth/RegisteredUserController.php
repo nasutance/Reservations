@@ -45,9 +45,9 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+        $user->sendEmailVerificationNotification();
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // Déconnecter immédiatement après inscription
+       return redirect('verify-email')->with('status', 'Vous devez vérifier votre email avant de vous connecter.');
     }
 }

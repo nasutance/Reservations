@@ -39,3 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::apiResource('reservations', ReservationController::class);
   Route::apiResource('representations', RepresentationController::class);
 });
+Route::get('/shows', [ShowController::class, 'index']); // sans middleware pou r les tests de la vue
