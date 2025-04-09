@@ -36,4 +36,4 @@ RUN chown -R www-data:www-data /var/www \
 # Définir l'utilisateur pour exécuter les processus
 USER www-data
 
-CMD ["php-fpm"]
+CMD ["php-fpm", "-F"]
