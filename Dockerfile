@@ -36,4 +36,4 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage
 
 # Lancer php-fpm
-CMD ["php-fpm"]
+CMD ["php", "-S", "0.0.0.0:80", "-t", "public"]

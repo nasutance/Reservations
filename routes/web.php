@@ -79,3 +79,20 @@ Route::get('/representation', [RepresentationController::class, 'index'])
         ->name('representation.index');
 Route::get('/representation/{id}', [RepresentationController::class, 'show'])
         ->where('id', '[0-9]+')->name('representation.show');
+
+
+        Route::get('/debug', function () {
+            try {
+                DB::connection()->getPdo();
+                $dbStatus = '✅ Connexion DB OK';
+            } catch (\Exception $e) {
+                $dbStatus = '❌ Connexion DB échouée : ' . $e->getMessage();
+            }
+
+            return [
+                'env' => app()->environment(),
+                'url' => config('app.url'),
+                'app_key_loaded' => config('app.key') ? '✅ OUI' : '❌ NON',
+                'db' => $dbStatus,
+            ];
+        });
