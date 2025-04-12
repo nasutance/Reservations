@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use App\Models\Reservation;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,6 +14,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(){}
 
     public function boot(){
+
+      if (env('APP_ENV') === 'production') {
+        URL::forceScheme('https');
+      }
 
       Gate::define('index-artist', function (User $user) {
         return $user->role === 'admin' or $user->role === 'member';
