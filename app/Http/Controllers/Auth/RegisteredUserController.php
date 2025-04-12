@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Providers\RouteServiceProvider;
+
 
 class RegisteredUserController extends Controller
 {
@@ -43,11 +45,18 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        // bypass vérif email
+           $user->markEmailAsVerified();
 
-        event(new Registered($user));
-        $user->sendEmailVerificationNotification();
+           event(new Registered($user));
 
-        // Déconnecter immédiatement après inscription
-       return redirect('verify-email')->with('status', 'Vous devez vérifier votre email avant de vous connecter.');
+           Auth::login($user);
+
+           return redirect(RouteServiceProvider::Dashboard);
+      //  event(new Registered($user));
+      //  $user->sendEmailVerificationNotification();
+
+
+    //   return redirect('verify-email')->with('status', 'Vous devez vérifier votre email avant de vous connecter.');
     }
 }
