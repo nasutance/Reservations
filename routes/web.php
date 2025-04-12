@@ -14,12 +14,7 @@ use App\Http\Controllers\ShowController;
 use App\Http\Controllers\RepresentationController;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return Inertia::render('Home');
 });
 
 Route::get('/dashboard', function () {
