@@ -37,7 +37,3 @@ RUN chown -R www-data:www-data /var/www \
 
 # Lancer php-fpm
 CMD ["php", "-S", "0.0.0.0:80", "-t", "public"]
-<<<<<<< HEAD
-=======
-
->>>>>>> eaf6feb45933667f96f5ec738d224de436f7a8e6
