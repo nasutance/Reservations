@@ -80,19 +80,10 @@ Route::get('/representation', [RepresentationController::class, 'index'])
 Route::get('/representation/{id}', [RepresentationController::class, 'show'])
         ->where('id', '[0-9]+')->name('representation.show');
 
-
-        Route::get('/debug', function () {
-            try {
-                DB::connection()->getPdo();
-                $dbStatus = '✅ Connexion DB OK';
-            } catch (\Exception $e) {
-                $dbStatus = '❌ Connexion DB échouée : ' . $e->getMessage();
-            }
-
-            return [
-                'env' => app()->environment(),
-                'url' => config('app.url'),
-                'app_key_loaded' => config('app.key') ? '✅ OUI' : '❌ NON',
-                'db' => $dbStatus,
-            ];
-        });
+Route::middleware(['auth'])->group(function () {
+  Route::get('/reservation/{show}', [ReservationController::class, 'create'])->name('reservation.create');
+  Route::post('/reservation', [ReservationController::class, 'store'])->name('reservation.store');
+  Route::get('/mes-reservations', [ReservationController::class, 'index'])->name('reservation.index');
+  Route::get('/reservation/details/{reservation}', [ReservationController::class, 'show'])->name('reservation.show');
+  Route::delete('/reservation/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
+});

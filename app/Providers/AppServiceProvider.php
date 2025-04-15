@@ -47,25 +47,11 @@ class AppServiceProvider extends ServiceProvider
         return $user->roles()->where('role', 'admin')->exists();
       });
 
-      Gate::define('view-all-reservations', function (User $user) {
-       return $user->roles()->where('role', 'admin')->exists();
-     });
-
-      Gate::define('view-shows', function (User $user) {
+          Gate::define('view-shows', function (User $user) {
         return $user->roles->contains('role', 'member') ||
                $user->roles->contains('role', 'admin') ||
                $user->roles->contains('role', 'press');
              });
-
-      // Autoriser un utilisateur à modifier sa propre réservation
-      Gate::define('update-reservation', function (User $user, Reservation $reservation) {
-        return $user->id === $reservation->user_id || $user->roles()->where('role', 'admin')->exists();
-      });
-
-      // Autoriser un utilisateur à supprimer sa propre réservation
-      Gate::define('delete-reservation', function (User $user, Reservation $reservation) {
-        return $user->id === $reservation->user_id || $user->roles()->where('role', 'admin')->exists();
-      });
 
       // Charger les routes API
       Route::middleware('api')
