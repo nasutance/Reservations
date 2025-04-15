@@ -20,17 +20,26 @@
 
     <h2 class="mt-6 font-semibold">Liste des représentations</h2>
     <ul v-if="show.representations.length">
-      <li v-for="representation in show.representations" :key="representation.id">
-        {{ representation.schedule }}
-        <span v-if="representation.location">
-          ({{ representation.location.designation }})
-        </span>
-        <span v-else-if="show.location">
-          ({{ show.location.designation }})
-        </span>
-        <span v-else>
-          (lieu à déterminer)
-        </span>
+      <li v-for="representation in show.representations" :key="representation.id" class="mb-2">
+        <div>
+          {{ representation.schedule }}
+          <span v-if="representation.location">
+            ({{ representation.location.designation }})
+          </span>
+          <span v-else-if="show.location">
+            ({{ show.location.designation }})
+          </span>
+          <span v-else>
+            (lieu à déterminer)
+          </span>
+        </div>
+        <div class="mt-1">
+          <ReserveButton
+            :show-id="show.id"
+            :bookable="show.bookable"
+            :representations-count="show.representations.length"
+          />
+        </div>
       </li>
     </ul>
     <p v-else>Aucune représentation</p>
@@ -55,7 +64,7 @@
 
     <p><strong>Distribution :</strong>
       <span v-for="(comedien, index) in collaborateurs.comédien" :key="index">
-        {{ comedien.firstname }} {{ comedien.lastname }}
+        {{ comédien.firstname }} {{ comédien.lastname }}
         <template v-if="index === collaborateurs.comédien.length - 2"> et </template>
         <template v-else-if="index < collaborateurs.comédien.length - 1">, </template>
       </span>
@@ -71,8 +80,22 @@
 
 <script setup>
 import { usePage, Link } from '@inertiajs/vue3'
+import ReserveButton from '@/Components/ReserveButton.vue'
 
 const page = usePage()
 const show = page.props.show
 const collaborateurs = page.props.collaborateurs
+const user = page.props.auth.user
 </script>
+
+<style scoped>
+.btn {
+  margin-top: 0.3em;
+  padding: 0.4em 0.8em;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+</style>

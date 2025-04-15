@@ -23,19 +23,30 @@
       <button @click.prevent="reset" class="btn">Réinitialiser</button>
     </form>
 
-    <ul class="space-y-2">
-      <li v-for="show in shows.data" :key="show.id">
-        <Link :href="route('show.show', show.id)" class="text-blue-600 hover:underline">
-          {{ show.title }}
-        </Link>
+    <ul class="space-y-4">
+      <li v-for="show in shows.data" :key="show.id" class="border p-4 rounded shadow-sm">
+        <div class="flex flex-col gap-1">
+          <Link :href="route('show.show', show.id)" class="text-blue-600 hover:underline text-lg font-semibold">
+            {{ show.title }}
+          </Link>
 
-        <template v-if="!show.bookable">
-          <em>Réservation indisponible</em>
-        </template>
+          <div class="text-sm text-gray-600">
+            <template v-if="!show.bookable">
+              <em>Réservation indisponible</em>
+            </template>
+            <span v-if="show.representations_count === 1"> - 1 représentation</span>
+            <span v-else-if="show.representations_count > 1"> - {{ show.representations_count }} représentations</span>
+            <span v-else> - <em>aucune représentation</em></span>
+          </div>
 
-        <span v-if="show.representations_count === 1"> - 1 représentation</span>
-        <span v-else-if="show.representations_count > 1"> - {{ show.representations_count }} représentations</span>
-        <span v-else> - <em>aucune représentation</em></span>
+          <div class="mt-2">
+            <ReserveButton
+              :show-id="show.id"
+              :bookable="show.bookable"
+              :representations-count="show.representations_count"
+            />
+          </div>
+        </div>
       </li>
     </ul>
 
@@ -44,12 +55,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive } from 'vue'
 import { usePage, router, Link } from '@inertiajs/vue3'
 import Pagination from '@/Components/Pagination.vue'
+import ReserveButton from '@/Components/ReserveButton.vue'
 
 const page = usePage()
 const shows = page.props.shows
+const user = page.props.auth.user
 
 const filters = reactive({
   q: page.props.filters.q || '',
