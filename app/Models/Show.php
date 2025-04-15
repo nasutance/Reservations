@@ -75,4 +75,10 @@ class Show extends Model
     {
       return $this->belongsToMany(Price::class);
     }
+
+    public function tags()
+    {
+      return $this->belongsToMany(Tag::class);
+    }
+    
   }

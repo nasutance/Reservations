@@ -82,7 +82,8 @@ public function show(string $id)
       'artistTypes.artist',
       'artistTypes.type',
       'representations.location',
-      'location'
+      'location',
+      'tags'
   ])->find($id);
 
   if (!$show) {

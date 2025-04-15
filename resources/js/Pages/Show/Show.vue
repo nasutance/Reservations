@@ -17,7 +17,13 @@
     <p>
       <em>{{ show.bookable ? 'Réservable' : 'Non réservable' }}</em>
     </p>
-
+//****************************************************************
+    <h2 class="mt-6 font-semibold">Mots-clés</h2>
+    <ul v-if="show.tags.length" class="list-disc list-inside">
+      <li v-for="tag in show.tags" :key="tag.id">{{ tag.tag }}</li>
+    </ul>
+    <p v-else>Aucun mot-clé associé.</p>
+//**********************************************************************
     <h2 class="mt-6 font-semibold">Liste des représentations</h2>
     <ul v-if="show.representations.length">
       <li v-for="representation in show.representations" :key="representation.id" class="mb-2">

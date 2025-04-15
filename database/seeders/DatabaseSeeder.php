@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             PriceShowSeeder::class,
             RepresentationReservationSeeder::class,
             RoleUserSeeder::class,
+            TagSeeder::class,
         ]);
     }
 }
