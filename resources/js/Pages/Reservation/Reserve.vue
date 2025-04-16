@@ -3,6 +3,7 @@
     <component
       :is="currentComponent"
       :form="form"
+      :show="show"
       @next="goToNextStep"
       @previous="goToPreviousStep"
       @submit="submitReservation"
@@ -11,19 +12,22 @@
 </template>
 
 <script setup>
-/*import { ref } from 'vue'
+import { usePage } from '@inertiajs/vue3'
+const { props } = usePage()
+const show = props.show
+import { ref, computed } from 'vue'
 import Step1ChooseRepresentation from './Step1ChooseRepresentation.vue'
-import Step2SeatsOrPlaces from './Step2SeatsOrPlaces.vue'
-import Step3Delivery from './Step3Delivery.vue'
-import Step4Payment from './Step4Payment.vue'
-import Step5Confirmation from './Step5Confirmation.vue'
+// import Step2SeatsOrPlaces from './Step2SeatsOrPlaces.vue'
+// import Step3Delivery from './Step3Delivery.vue'
+// import Step4Payment from './Step4Payment.vue'
+// import Step5Confirmation from './Step5Confirmation.vue'
 
 const steps = [
   Step1ChooseRepresentation,
-  Step2SeatsOrPlaces,
-  Step3Delivery,
-  Step4Payment,
-  Step5Confirmation,
+  // Step2SeatsOrPlaces,
+  // Step3Delivery,
+  // Step4Payment,
+  // Step5Confirmation,
 ]
 
 const currentStep = ref(0)
@@ -37,7 +41,8 @@ const form = ref({
 
 const currentComponent = computed(() => steps[currentStep.value])
 
-function goToNextStep() {
+function goToNextStep(payload = {}) {
+  Object.assign(form.value, payload)
   if (currentStep.value < steps.length - 1) {
     currentStep.value++
   }
@@ -50,7 +55,6 @@ function goToPreviousStep() {
 }
 
 function submitReservation() {
-  // Appel API via Inertia.post ou axios
   console.log('Formulaire soumis:', form.value)
-}*/
+}
 </script>

@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Providers\RouteServiceProvider;
 
 
 class RegisteredUserController extends Controller
@@ -52,7 +51,8 @@ class RegisteredUserController extends Controller
 
            Auth::login($user);
 
-           return redirect(RouteServiceProvider::Dashboard);
+           return redirect()->route('dashboard');
+
       //  event(new Registered($user));
       //  $user->sendEmailVerificationNotification();
 

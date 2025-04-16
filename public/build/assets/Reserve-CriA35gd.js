@@ -1,1 +1,0 @@
-import{f as n,c as r,A as t,o as e}from"./app-Du8l4ZtZ.js";const s={class:"max-w-2xl mx-auto py-10"},i={__name:"Reserve",setup(a){return(o,m)=>(e(),n("div",s,[(e(),r(t(o.currentComponent),{form:o.form,onNext:o.goToNextStep,onPrevious:o.goToPreviousStep,onSubmit:o.submitReservation},null,40,["form","onNext","onPrevious","onSubmit"]))]))}};export{i as default};
