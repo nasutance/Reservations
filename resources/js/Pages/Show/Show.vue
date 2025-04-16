@@ -18,6 +18,28 @@
       <em>{{ show.bookable ? 'Réservable' : 'Non réservable' }}</em>
     </p>
 
+
+
+    <h2 class="mt-6 font-semibold">Mots-clés</h2>
+    <ul v-if="show.tags.length" class="list-disc list-inside">
+      <li v-for="tag in show.tags" :key="tag.id">{{ tag.tag }}</li>
+    </ul>
+    <p v-else>Aucun mot-clé associé.</p>
+
+    <div v-if="user && user.role === 'admin'" class="mt-4">
+      <form @submit.prevent="submitTag">
+        <label for="tag_id" class="block font-semibold mb-1">Ajouter un mot-clé</label>
+        <select v-model="form.tag_id" id="tag_id" class="border p-2 rounded mb-2">
+          <option v-for="tag in allTags" :value="tag.id" :key="tag.id">
+            {{ tag.tag }}
+          </option>
+        </select>
+        <button type="submit" class="btn">Ajouter</button>
+      </form>
+    </div>
+
+
+
     <h2 class="mt-6 font-semibold">Liste des représentations</h2>
     <ul v-if="show.representations.length">
       <li v-for="representation in show.representations" :key="representation.id" class="mb-2">
@@ -79,13 +101,22 @@
 </template>
 
 <script setup>
-import { usePage, Link } from '@inertiajs/vue3'
+import { usePage, useForm, Link } from '@inertiajs/vue3'
 import ReserveButton from '@/Components/ReserveButton.vue'
 
 const page = usePage()
 const show = page.props.show
 const collaborateurs = page.props.collaborateurs
 const user = page.props.auth.user
+const allTags = page.props.allTags
+const form = useForm({ tag_id: '' })
+
+function submitTag() {
+  form.post(route('show.attachTag', show.id), {
+    preserveScroll: true,
+    onSuccess: () => form.reset(),
+  })
+}
 </script>
 
 <style scoped>

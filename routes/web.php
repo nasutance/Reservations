@@ -12,9 +12,16 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ShowController;
 use App\Http\Controllers\RepresentationController;
+use App\Http\Controllers\TagController;
+
+Route::middleware(['auth', 'admin'])->group(function () {
+  Route::post('/shows/{show}/tags', [TagController::class, 'attach'])->name('show.attachTag');
+});
+Route::get('/shows/without-tag/{tag}', [ShowController::class, 'withoutTag'])->name('show.withoutTag');
+
 
 Route::get('/', function () {
-    return Inertia::render('Home');
+  return Inertia::render('Home');
 });
 
 Route::get('/dashboard', function () {

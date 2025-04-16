@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Show;
 use Illuminate\Http\Request;
+use App\Models\Tag;
+use Illuminate\Support\Facades\Auth;
 
 class ShowController extends Controller
 {
@@ -60,6 +62,14 @@ class ShowController extends Controller
         $query->orderBy($sort, $direction);
     }
 
+    // Filtrer par tag
+if ($request->filled('tag')) {
+    $query->whereHas('tags', function ($q) use ($request) {
+        $q->where('id', $request->tag);
+    });
+}
+
+
 
     // Charger les représentations
     $query->withCount('representations');
@@ -71,8 +81,9 @@ class ShowController extends Controller
         'shows' => $shows,
         'filters' => $request->only([
             'q', 'artist', 'location', 'postal_code',
-            'min_duration', 'max_duration', 'sort', 'direction'
+            'min_duration', 'max_duration', 'sort', 'direction', 'tag'
         ]),
+    'tags' => Tag::all(['id', 'tag']),
     ]);
 }
 
@@ -82,7 +93,8 @@ public function show(string $id)
       'artistTypes.artist',
       'artistTypes.type',
       'representations.location',
-      'location'
+      'location',
+      'tags'
   ])->find($id);
 
   if (!$show) {
@@ -106,7 +118,27 @@ public function show(string $id)
   return Inertia::render('Show/Show', [
       'show' => $show,
       'collaborateurs' => $collaborateurs,
+      'auth' => [
+          'user' => Auth::user(),
+      ],
+      'allTags' => Tag::all(['id', 'tag']),
   ]);
+}
+
+public function withoutTag(Tag $tag)
+{
+    $shows = Show::whereDoesntHave('tags', function ($q) use ($tag) {
+        $q->where('tags.id', $tag->id);
+    })->withCount('representations')->paginate(10);
+
+    return Inertia::render('Show/Index', [
+        'shows' => $shows,
+        'filters' => [
+            'without_tag' => $tag->id,
+        ],
+        'message' => "Spectacles **sans** le mot-clé « {$tag->tag} »",
+        'tags' => Tag::all(['id', 'tag']),
+    ]);
 }
 
 
