@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+/*import { ref } from 'vue'
 import Step1ChooseRepresentation from './Step1ChooseRepresentation.vue'
 import Step2SeatsOrPlaces from './Step2SeatsOrPlaces.vue'
 import Step3Delivery from './Step3Delivery.vue'
@@ -52,5 +52,5 @@ function goToPreviousStep() {
 function submitReservation() {
   // Appel API via Inertia.post ou axios
   console.log('Formulaire soumis:', form.value)
-}
+}*/
 </script>

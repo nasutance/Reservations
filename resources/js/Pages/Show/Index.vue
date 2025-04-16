@@ -1,4 +1,5 @@
 <template>
+<AppLayout>
   <div>
     <h1 class="text-2xl font-bold mb-4">Liste des spectacles</h1>
 
@@ -52,9 +53,11 @@
 
     <Pagination :links="shows.links" />
   </div>
+  </AppLayout>
 </template>
 
 <script setup>
+import AppLayout from '@/Layouts/AppLayout.vue'
 import { ref, reactive } from 'vue'
 import { usePage, router, Link } from '@inertiajs/vue3'
 import Pagination from '@/Components/Pagination.vue'
