@@ -29,29 +29,34 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'firstname' => ['required', 'string', 'max:255'],
-            'lastname' => ['required', 'string', 'max:255'],
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+     public function store(Request $request): RedirectResponse
+     {
+         $request->validate([
+             'firstname' => ['required', 'string', 'max:255'],
+             'lastname' => ['required', 'string', 'max:255'],
+             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+         ]);
 
-        $user = User::create([
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-        // bypass vérif email
-           $user->markEmailAsVerified();
+         $user = User::create([
+             'firstname' => $request->firstname,
+             'lastname' => $request->lastname,
+             'email' => $request->email,
+             'password' => Hash::make($request->password),
+         ]);
 
-           event(new Registered($user));
+         // 👇 Bypass vérification email (optionnel pour ton PID)
+         $user->markEmailAsVerified();
 
-           Auth::login($user);
+         // 👇 Si personne n’est connecté ou que ce n’est pas un admin : rôle "membre" auto
+         if (!Auth::check() || !Auth::user()->roles()->where('role', 'admin')->exists()) {
+             $user->roles()->attach(2); // rôle "membre"
+         }
 
-           return redirect()->route('dashboard');
+         event(new Registered($user));
+         Auth::login($user);
+
+         return redirect()->route('dashboard');
 
       //  event(new Registered($user));
       //  $user->sendEmailVerificationNotification();
