@@ -26,7 +26,8 @@ function handleClick() {
   if (user) {
     router.get(route('reservation.create', { show: props.showId }))
   } else {
-    showModal.value = true
+  localStorage.setItem('redirectAfterLogin', route('reservation.create', { show: props.showId }))
+  showModal.value = true
   }
 }
 </script>

@@ -53,7 +53,13 @@ const form = useForm({
 
 function submit() {
   form.post(route('login'), {
-    onFinish: () => form.reset('password'),
+    onSuccess: () => {
+      const redirect = localStorage.getItem('redirectAfterLogin')
+      if (redirect) {
+        localStorage.removeItem('redirectAfterLogin')
+        window.location.href = redirect
+      }
+    }
   })
 }
 </script>
