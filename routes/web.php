@@ -95,3 +95,7 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/reservation/details/{reservation}', [ReservationController::class, 'show'])->name('reservation.show');
   Route::delete('/reservation/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
 });
+
+Route::patch('/reservation/{reservation}', [ReservationController::class, 'update'])
+    ->middleware('auth')
+    ->name('reservation.update');

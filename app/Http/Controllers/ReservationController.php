@@ -17,7 +17,7 @@ class ReservationController extends Controller
 
   public function create(Show $show)
   {
-    // On charge les représentations et leurs prix pour la vue VueJS
+    // Charge les représentations et leurs prix pour la vue VueJS
 
     $show->load(['representations.location', 'prices']);
 
@@ -72,7 +72,10 @@ public function store(Request $request)
       ]);
   }
 
-  return redirect()->route('dashboard')->with('success', 'Réservation enregistrée avec succès !');
+  return response()->json([
+      'lastInsertedId' => $reservation->id,
+  ]);
+
 }
 
     public function index()
@@ -109,4 +112,20 @@ public function store(Request $request)
 
         return redirect()->route('dashboard')->with('success', 'Réservation annulée.');
     }
+
+    public function update(Request $request, Reservation $reservation)
+{
+    $this->authorize('update', $reservation);
+
+    $validated = $request->validate([
+        'status' => 'required|string|in:en attente,payée,annulée',
+    ]);
+
+    $reservation->update([
+        'status' => $validated['status'],
+    ]);
+
+    return back()->with('success', 'Statut de la réservation mis à jour.');
+}
+
 }
