@@ -26,7 +26,17 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $user = Auth::user();
+
+    $query = $user->reservations()->with(['representations.show']);
+
+    if ($user->can('viewAny', Reservation::class)) {
+        $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
+    }
+
+    return Inertia::render('Dashboard', [
+        'reservations' => $query->get(),
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -99,3 +109,9 @@ Route::middleware(['auth'])->group(function () {
 Route::patch('/reservation/{reservation}', [ReservationController::class, 'update'])
     ->middleware('auth')
     ->name('reservation.update');
+
+Route::get('/merci', function () {
+  return Inertia::render('Reservation/Thanks', [
+    'reservationId' => session('reservationId'),
+  ]);
+})->middleware('auth')->name('reservation.thanks');

@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100">
     <Banner />
-    <NavBar />
+    <AuthenticatedNav />
 
     <main class="max-w-5xl mx-auto p-6">
       <slot />
@@ -11,5 +11,5 @@
 
 <script setup>
 import Banner from '@/Components/Banner.vue'
-import NavBar from '@/Components/NavBar.vue'
+import AuthenticatedNav from '@/Components/AuthenticatedNav.vue'
 </script>

@@ -1,4 +1,5 @@
 <template>
+<AppLayout>
   <div class="max-w-2xl mx-auto py-10">
     <component
       :is="currentComponent"
@@ -10,9 +11,12 @@
       @submit="submitReservation"
     />
   </div>
+  </AppLayout>
 </template>
 
 <script setup>
+import AppLayout from '@/Layouts/AppLayout.vue'
+import { Head, Link } from '@inertiajs/vue3'
 import { usePage } from '@inertiajs/vue3'
 const { props } = usePage()
 const show = props.show

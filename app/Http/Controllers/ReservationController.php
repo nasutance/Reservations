@@ -88,9 +88,10 @@ public function store(Request $request)
             $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
         }
 
-        return Inertia::render('Reservation/Index', [
+        return Inertia::render('Dashboard', [
             'reservations' => $query->get()
         ]);
+
     }
 
     public function show(Reservation $reservation)
@@ -125,7 +126,10 @@ public function store(Request $request)
         'status' => $validated['status'],
     ]);
 
-    return back()->with('success', 'Statut de la réservation mis à jour.');
+    session()->flash('reservationId', $reservation->id);
+
+    return response()->json(['status' => 'ok']);
+
 }
 
 }

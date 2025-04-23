@@ -39,10 +39,9 @@
         </button>
 
         <div v-if="reservationCreated">
-        <p class="text-sm text-green-600 mb-2">
-Réservation enregistrée sous le numéro <strong>#{{ reservationId }}</strong>. Procédez au paiement :
-</p>
-
+          <p class="text-sm text-green-600 mb-2">
+            Réservation enregistrée sous le numéro <strong>#{{ reservationId }}</strong>. Procédez au paiement :
+          </p>
           <div id="paypal-button-container"></div>
         </div>
       </div>
@@ -148,13 +147,15 @@ function renderPaypal() {
     },
     onApprove: (data, actions) => {
       return actions.order.capture().then(() => {
-        Inertia.patch(`/reservation/${reservationId.value}`, {
-          status: 'payée',
-        }, {
-          onSuccess: () => {
-            Inertia.visit('/dashboard')
-          }
-        })
+      axios.patch(`/reservation/${reservationId.value}`, {
+        status: 'payée',
+      })
+      .then(() => {
+        Inertia.visit('/merci')
+      })
+      .catch((err) => {
+        console.error("Erreur PATCH statut :", err)
+      })
       })
     }
   }).render('#paypal-button-container')

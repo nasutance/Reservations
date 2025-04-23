@@ -29,10 +29,10 @@ const form = useForm({
     <section>
         <header>
             <h2 class="text-lg font-medium text-gray-900">
-                Profile Information
+                Données personnelles
             </h2>
             <p class="mt-1 text-sm text-gray-600">
-                Update your account's profile information and email address.
+                Mettez à jour vos données et votre adresse email.
             </p>
         </header>
 
@@ -42,7 +42,7 @@ const form = useForm({
         >
             <!-- Champ pour le nom -->
             <div>
-                <InputLabel for="firstname" value="Firstname" />
+                <InputLabel for="firstname" value="Prénom" />
                 <TextInput
                     id="firstname"
                     type="text"
@@ -55,7 +55,7 @@ const form = useForm({
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
             <div>
-                <InputLabel for="lastname" value="Lastname" />
+                <InputLabel for="lastname" value="Nom" />
                 <TextInput
                     id="lastname"
                     type="text"
