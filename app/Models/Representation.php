@@ -58,4 +58,10 @@ class Representation extends Model
             ->withPivot('price_id', 'quantity');
     }
 
+    public function prices()
+{
+    return $this->hasMany(Price::class);
+}
+
+
 }

@@ -1,4 +1,5 @@
 <template>
+<AppLayout>
   <article>
     <h1 class="text-2xl font-bold mb-4">{{ show.title }}</h1>
 
@@ -98,9 +99,11 @@
       Retour à l'index
     </Link>
   </nav>
+  </AppLayout>
 </template>
 
 <script setup>
+import AppLayout from '@/Layouts/AppLayout.vue'
 import { usePage, useForm, Link } from '@inertiajs/vue3'
 import ReserveButton from '@/Components/ReserveButton.vue'
 

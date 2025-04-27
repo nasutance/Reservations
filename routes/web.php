@@ -14,6 +14,7 @@ use App\Http\Controllers\ShowController;
 use App\Http\Controllers\RepresentationController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\DashboardController;
 
 Route::middleware(['auth', 'admin'])->group(function () {
   Route::post('/shows/{show}/tags', [TagController::class, 'attach'])->name('show.attachTag');
@@ -25,19 +26,9 @@ Route::get('/', function () {
   return Inertia::render('Home');
 });
 
-Route::get('/dashboard', function () {
-    $user = Auth::user();
-
-    $query = $user->reservations()->with(['representations.show']);
-
-    if ($user->can('viewAny', Reservation::class)) {
-        $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
-    }
-
-    return Inertia::render('Dashboard', [
-        'reservations' => $query->get(),
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])

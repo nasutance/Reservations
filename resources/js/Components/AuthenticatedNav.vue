@@ -1,6 +1,7 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3'
 import { ref } from 'vue'
+const csrfToken = usePage().props.csrf_token
 
 const user = usePage().props.auth?.user ?? null
 const menuOpen = ref(false)
@@ -14,7 +15,6 @@ const menuOpen = ref(false)
         🎟️ Réservations
       </Link>
 
-      <!-- Desktop Links -->
       <div class="hidden sm:flex items-center space-x-4 text-sm">
         <Link :href="route('show.index')" class="text-gray-700 hover:text-indigo-600">
           Spectacles
@@ -37,13 +37,14 @@ const menuOpen = ref(false)
         </Link>
 
         <form v-if="user" method="POST" :action="route('logout')" class="inline">
-          <button type="submit" class="text-red-600 hover:underline">
-            Déconnexion
-          </button>
-        </form>
+  <input type="hidden" name="_token" :value="csrfToken">
+  <button type="submit" class="text-red-600 hover:underline">
+    Déconnexion
+  </button>
+</form>
+
       </div>
 
-      <!-- Mobile Hamburger -->
       <div class="sm:hidden">
         <button @click="menuOpen = !menuOpen" class="text-gray-600 focus:outline-none">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +57,6 @@ const menuOpen = ref(false)
       </div>
     </div>
 
-    <!-- Mobile Menu -->
     <div v-if="menuOpen" class="sm:hidden mt-3 space-y-2 px-2">
       <Link :href="route('show.index')" class="block text-gray-700 hover:text-indigo-600">Spectacles</Link>
       <Link v-if="user" :href="route('dashboard')" class="block text-gray-700 hover:text-indigo-600">Dashboard</Link>
@@ -64,8 +64,12 @@ const menuOpen = ref(false)
       <Link v-if="!user" :href="route('login')" class="block text-gray-700 hover:text-indigo-600">Connexion</Link>
       <Link v-if="!user" :href="route('register')" class="block text-gray-700 hover:text-indigo-600">Inscription</Link>
       <form v-if="user" method="POST" :action="route('logout')">
-        <button type="submit" class="block text-red-600 hover:underline w-full text-left">Déconnexion</button>
-      </form>
+  <input type="hidden" name="_token" :value="csrfToken">
+  <button type="submit" class="block text-red-600 hover:underline w-full text-left">
+    Déconnexion
+  </button>
+</form>
+
     </div>
   </nav>
 </template>

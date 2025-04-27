@@ -88,7 +88,7 @@ public function store(Request $request)
             $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
         }
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('Dashboard/Dashboard', [
             'reservations' => $query->get()
         ]);
 
@@ -111,7 +111,7 @@ public function store(Request $request)
 
         $reservation->delete();
 
-        return redirect()->route('dashboard')->with('success', 'Réservation annulée.');
+        return redirect()->route('Dashboard')->with('success', 'Réservation annulée.');
     }
 
     public function update(Request $request, Reservation $reservation)
