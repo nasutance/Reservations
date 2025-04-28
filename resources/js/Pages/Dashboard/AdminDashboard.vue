@@ -10,19 +10,25 @@
     </div>
 
     <div>
-      <p v-if="activeSection === 'users'">Liste des utilisateurs ici</p>
+      <div  v-if="activeSection === 'users'">
+        <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
+        <DataTable :headers="headersUser" :fields="fieldsUser" :rows="formattedUsers" />
+      </div>
 
       <div v-if="activeSection === 'reservations'">
         <h3 class="text-xl font-semibold mb-4">Liste des réservations</h3>
-        <DataTable :headers="headers" :fields="fields" :rows="formattedReservations" />
+        <DataTable :headers="headersResa" :fields="fieldsResa" :rows="formattedReservations" />
       </div>
 
-      <p v-if="activeSection === 'shows'">Liste des spectacles ici</p>
+      <div v-if="activeSection === 'shows'">
+        <h3 class="text-xl font-semibold mb-4">Liste des spectacles</h3>
+        <DataTable :headers="headersShow" :fields="fieldsShow" :rows="formattedShows" />
+      </div>
+
       <p v-if="activeSection === 'artists'">Liste des artistes ici</p>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref } from 'vue'
@@ -30,31 +36,25 @@ import { usePage } from '@inertiajs/vue3'
 import Button from '@/Components/Button.vue'
 import DataTable from '@/Components/DataTable.vue'
 import { formatDate } from '@/utils'
+import useFormattedReservations from '@/utils/useFormattedReservations';
+import useFormattedUsers from '@/utils/useFormattedUsers';
+import useFormattedShows from '@/utils/useFormattedShows';
 
+const { formattedReservations } = useFormattedReservations();
+const { formattedUsers } = useFormattedUsers();
+const { formattedShows } = useFormattedShows();
 const activeSection = ref('')
 
-// Récupérer les props envoyées par Laravel
-const reservations = usePage().props.reservations ?? []
-const prices = usePage().props.prices ?? []
-
 // Headers pour Admin Réservations
-const headers = ['#', 'Utilisateur', 'Spectacle', 'Représentation', 'Statut', 'Détail']
-const fields = ['id', 'user', 'showTitle', 'schedule', 'status', 'actions']
+const headersResa = ['#', 'Utilisateur', 'Spectacle', 'Représentation', 'Statut', 'Détails']
+const fieldsResa = ['id', 'user', 'showTitle', 'schedule', 'status', 'detail']
 
-// Construction du tableau Admin
-const formattedReservations = reservations.map(resa => ({
-  id: resa.id,
-  user: resa.user ? `${resa.user.firstname} ${resa.user.lastname}` : '-',
-  showTitle: resa.representations[0]?.show?.title || '-',
-  schedule: formatDate(resa.representations[0]?.schedule),
-  status: resa.status,
-  actions: resa.representations.length
-    ? resa.representations
-        .map(rep => {
-          const price = prices.find(p => p.id === rep.pivot.price_id);
-          return price ? `${rep.pivot.quantity} ${price.description}` : `${rep.pivot.quantity} -`;
-        })
-        .join('<br>')
-    : '-',
-}))
+// Headers pour Admin Utilisateurs
+const headersUser = ['#', 'Prénom', 'Nom', 'email', 'Langue', 'Rôle']
+const fieldsUser = ['id', 'firstname', 'lastname', 'email', 'langue', 'role']
+
+// Headers pour Admin Spectacles
+const headersShow = ['#', 'Titre', 'Description', 'Durée', 'Lieu', 'Réservable', 'Représentations']
+const fieldsShow = ['id', 'title', 'description', 'duration', 'location', 'bookable', 'representations']
+
 </script>

@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Show;
 use App\Models\Price;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -17,12 +18,15 @@ class DashboardController extends Controller
         $users = [];
         $shows = [];
 
+
+
         $query = $connectedUser->reservations()->with(['representations.show']);
 
         if ($connectedUser->can('viewAny', Reservation::class)) {
             $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
-            $shows = Show::all();
-            $users = User::select('id', 'firstname', 'lastname', 'email')->get();
+            $shows = Show::with('representations.location')->select('id', 'title', 'description', 'duration', 'bookable')->get();
+            $users = User::with('roles')->select('id', 'firstname', 'lastname', 'email','langue')->get();
+
         }
 
         return Inertia::render('Dashboard/Dashboard', [
