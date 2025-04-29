@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+
 class ArtistType extends Model
 {
     use HasFactory;
@@ -22,10 +23,10 @@ class ArtistType extends Model
     /**
      * Get the shows of the performance (artist in a type of collaboration for a show).
      */
-    public function shows(): BelongsToMany
-    {
-        return $this->belongsToMany(Show::class);
-    }
+     public function shows(): BelongsToMany
+     {
+         return $this->belongsToMany(Show::class, 'artist_type_show', 'artist_type_id', 'show_id');
+     }
 
     /**
      * Get the artist for that association.
@@ -42,4 +43,6 @@ class ArtistType extends Model
     {
         return $this->belongsTo(Type::class);
     }
+
+
 }
