@@ -1,8 +1,8 @@
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 
-export default function useFormattedUsers() { // <= majuscule F
-  const users = usePage().props.users ?? [];
+export default function useFormattedUsers() {
+  const users = usePage().props.users ?? []
 
   const formattedUsers = computed(() => {
     return users.map(user => ({
@@ -11,9 +11,12 @@ export default function useFormattedUsers() { // <= majuscule F
       lastname: user.lastname,
       email: user.email,
       langue: user.langue,
-      role: user.roles.length > 0 ? user.roles[0].role : '-' 
-    }));
-  });
+      role: user.roles.length > 0
+        ? user.roles.map(r => r.role).join(', ')
+        : '-',
+      selectedRoleIds: user.roles.map(r => r.id),
+    }))
+  })
 
-  return { formattedUsers };
+  return { formattedUsers }
 }

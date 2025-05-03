@@ -36,9 +36,9 @@
       <p class="font-semibold">Spectacles <span class="italic">sans</span> ces mots-clés :</p>
       <ul class="flex gap-2 flex-wrap mt-2">
         <li v-for="tag in tags" :key="tag.id">
-          <Link :href="route('show.withoutTag', tag.id)" class="text-red-600 hover:underline text-sm bg-red-100 px-2 py-1 rounded">
-            {{ tag.tag }}
-          </Link>
+        <button @click="filterWithoutTag(tag.id)" class="text-red-600 hover:underline text-sm bg-red-100 px-2 py-1 rounded">
+{{ tag.tag }}
+</button>
         </li>
       </ul>
     </div>
@@ -100,6 +100,16 @@ const tags = page.props.tags
 
 function filter() {
   router.get(route('show.index'), filters, { preserveScroll: true, preserveState: true })
+}
+
+function filterWithoutTag(tagId) {
+  router.get('/show', {
+    ...filters,
+    without_tag: tagId,
+  }, {
+    preserveScroll: true,
+    preserveState: true
+  })
 }
 
 function reset() {

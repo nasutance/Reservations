@@ -1,41 +1,53 @@
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 
 export default function useFormattedArtists() {
-  const artists = usePage().props.artists ?? [];
+  const artists = usePage().props.artists ?? []
+  const artistTypes = usePage().props.artistTypes ?? []
 
   const formattedArtists = computed(() => {
     return artists.map(artist => {
-      const artistTypes = artist.artistTypes ?? artist.artist_types ?? [];
+      const relatedArtistTypes = artistTypes.filter(at => at.artist_id === artist.id)
 
-      // Liste de tous ses types globaux
-      const allTypes = artistTypes.map(at => at.type?.type).filter(Boolean);
+      const allTypes = relatedArtistTypes.map(at => at.type?.type).filter(Boolean)
 
-      // Mapping shows -> [types joués dans ce show]
-      const showsMap = {};
+      const showsMap = {}
 
-      for (const artistType of artistTypes) {
-        const typeName = artistType.type?.type ?? '-';
+      for (const artistType of relatedArtistTypes) {
+        const typeName = artistType.type?.type ?? '-'
 
         for (const show of artistType.shows ?? []) {
           if (!showsMap[show.title]) {
-            showsMap[show.title] = [];
+            showsMap[show.title] = []
           }
-          showsMap[show.title].push(typeName);
+          showsMap[show.title].push(typeName)
         }
       }
 
       const showsList = Object.entries(showsMap).map(([showTitle, types]) => {
-        return `${showTitle} (${types.join(', ')})`;
-      });
+        return `${showTitle} (${types.join(', ')})`
+      })
 
       return {
-        fullname: `${artist.firstname} ${artist.lastname}`,
-        typesText: allTypes.join(', '),
-        showsText: showsList.join(' / ')
-      };
-    });
-  });
+  id: artist.id,
+  firstname: artist.firstname,
+  lastname: artist.lastname,
+  fullname: `${artist.firstname} ${artist.lastname}`,
+  typesText: allTypes.join(', '),
+  showsText: showsList.join(' / '),
 
-  return { formattedArtists };
+  // Ajouté :
+  selectedTypeIds: relatedArtistTypes.map(at => at.type_id),
+  selectedShowTypeMap: Object.fromEntries(
+    relatedArtistTypes.map(at => [
+      at.type_id,
+      at.shows.map(show => show.id)
+    ])
+  )
+}
+
+    })
+  })
+
+  return { formattedArtists }
 }

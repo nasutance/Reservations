@@ -69,6 +69,11 @@ if ($request->filled('tag')) {
     });
 }
 
+if ($request->filled('without_tag')) {
+    $query->whereDoesntHave('tags', function ($q) use ($request) {
+        $q->where('tags.id', $request->without_tag);
+    });
+}
 
 
     // Charger les représentations
@@ -89,57 +94,18 @@ if ($request->filled('tag')) {
 
 public function show(string $id)
 {
-  $show = Show::with([
-      'artistTypes.artist',
-      'artistTypes.type',
-      'representations.location',
-      'location',
-      'tags'
-  ])->find($id);
+    $show = Show::with([
+        'artistTypes.artist',
+        'artistTypes.type',
+        'representations.location',
+        'location',
+        'tags'
+    ])->findOrFail($id);
 
-  if (!$show) {
-      abort(404, 'Spectacle non trouvé.');
-  }
-
-  // Préparer les collaborateurs regroupés par type
-  $collaborateurs = [
-      'auteur' => [],
-      'scénographe' => [],
-      'comédien' => [],
-  ];
-
-  foreach ($show->artistTypes as $at) {
-      $type = $at->type->type ?? 'autre';
-      if (isset($collaborateurs[$type])) {
-          $collaborateurs[$type][] = $at->artist;
-      }
-  }
-
-  return Inertia::render('Show/Show', [
-      'show' => $show,
-      'collaborateurs' => $collaborateurs,
-      'auth' => [
-          'user' => Auth::user(),
-      ],
-      'allTags' => Tag::all(['id', 'tag']),
-  ]);
-}
-
-public function withoutTag(Tag $tag)
-{
-    $shows = Show::whereDoesntHave('tags', function ($q) use ($tag) {
-        $q->where('tags.id', $tag->id);
-    })->withCount('representations')->paginate(10);
-
-    return Inertia::render('Show/Index', [
-        'shows' => $shows,
-        'filters' => [
-            'without_tag' => $tag->id,
-        ],
-        'message' => "Spectacles **sans** le mot-clé « {$tag->tag} »",
-        'tags' => Tag::all(['id', 'tag']),
+    return Inertia::render('Show/Show', [
+        'show' => $show,
+        'allTags' => Tag::all(['id', 'tag']),
     ]);
 }
-
 
 }

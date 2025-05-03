@@ -19,8 +19,6 @@
       <em>{{ show.bookable ? 'Réservable' : 'Non réservable' }}</em>
     </p>
 
-
-
     <h2 class="mt-6 font-semibold">Mots-clés</h2>
     <ul v-if="show.tags.length" class="list-disc list-inside">
       <li v-for="tag in show.tags" :key="tag.id">{{ tag.tag }}</li>
@@ -38,8 +36,6 @@
         <button type="submit" class="btn">Ajouter</button>
       </form>
     </div>
-
-
 
     <h2 class="mt-6 font-semibold">Liste des représentations</h2>
     <ul v-if="show.representations.length">
@@ -87,7 +83,7 @@
 
     <p><strong>Distribution :</strong>
       <span v-for="(comedien, index) in collaborateurs.comédien" :key="index">
-        {{ comédien.firstname }} {{ comédien.lastname }}
+        {{ comedien.firstname }} {{ comedien.lastname }}
         <template v-if="index === collaborateurs.comédien.length - 2"> et </template>
         <template v-else-if="index < collaborateurs.comédien.length - 1">, </template>
       </span>
@@ -106,13 +102,30 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { usePage, useForm, Link } from '@inertiajs/vue3'
 import ReserveButton from '@/Components/ReserveButton.vue'
+import { computed } from 'vue'
 
 const page = usePage()
 const show = page.props.show
-const collaborateurs = page.props.collaborateurs
 const user = page.props.auth.user
 const allTags = page.props.allTags
 const form = useForm({ tag_id: '' })
+
+const collaborateurs = computed(() => {
+  const mapping = {
+    auteur: [],
+    scénographe: [],
+    comédien: [],
+  }
+
+  for (const at of show.artist_types ?? []) {
+    const type = at.type?.type
+    if (mapping[type]) {
+      mapping[type].push(at.artist)
+    }
+  }
+
+  return mapping
+})
 
 function submitTag() {
   form.post(route('show.attachTag', show.id), {

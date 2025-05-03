@@ -21,9 +21,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('langue', 2)->nullable();
-            // $table->enum('role', ['admin','member','affiliate','press'])->default('member'); // Supprimé comme dans Update 3
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes(); // 👈 suppression logique ajoutée ici
 
             $table->unique('login', 'users_login_unique');
         });

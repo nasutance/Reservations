@@ -2,103 +2,106 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use App\Models\Artist;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Inertia\Inertia;
 
 class ArtistController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-     public function index()
-     {
-     $artists = Artist::all();
+    use AuthorizesRequests;
 
-     return view('artist.index',[
-       'artists' => $artists,
-       'resource' => 'artistes',
-     ]);
-     }
-    /**
-     * Show the form forcreating a new resource.
-     */
-     public function create()
-     {
-       if (!Gate::allows('create-artist')) {
-       abort(403);
-     }
-       return view('artist.create');
-     }
-    /**
-     * Store a newly created resource in storage.
-     */
-     public function store(Request $request)
-     {
-       if (!Gate::allows('update-artist')) {
-         abort(403);
-       }
-        //Validation des données du formulaire
+    public function index()
+    {
+        $this->authorize('viewAny', Artist::class);
+
+        $artists = Artist::with(['artistTypes.type', 'artistTypes.shows'])
+                         ->select('id', 'firstname', 'lastname')
+                         ->get();
+
+        return Inertia::render('Artist/Index', [
+            'artists' => $artists
+        ]);
+    }
+
+    public function create()
+    {
+        $this->authorize('create', Artist::class);
+        return Inertia::render('Artist/Create');
+    }
+
+    public function store(Request $request)
+    {
+        $this->authorize('create', Artist::class);
+
         $validated = $request->validate([
             'firstname' => 'required|max:60',
             'lastname' => 'required|max:60',
         ]);
-        $artist = new Artist();
-        //Assignation des données et sauvegarde dans la base de données
-        $artist->firstname = $validated['firstname'];
-        $artist->lastname = $validated['lastname'];
-        $artist->save();
-}
-    /**
-     * Display the specified resource.
-     */
+
+        Artist::create($validated);
+
+        return back();
+
+    }
+
     public function show($id)
     {
-    $artist = Artist::find($id);
+        $artist = Artist::findOrFail($id);
+        $this->authorize('view', $artist);
 
-    return view('artist.show',[
-      'artist' => $artist,
-    ]);
+        return Inertia::render('Artist/Show', [
+            'artist' => $artist
+        ]);
     }
-    /**
-     * Show the form for editing the specified resource.
-     */
+
     public function edit($id)
     {
-      if (!Gate::allows('update-artist')) {
-           abort(403);
-       }
-      $artist = Artist::find($id);
-      return view('artist.edit',[
-      'artist' => $artist,
-      ]);
-    }
-    /**
-     * Update the specified resource in storage.
-     */
-     public function update(Request $request, $id)
-    {
-      if (!Gate::allows('update-artist')) {
-           abort(403);
-       }
-   //Validation des données du formulaire
-        $validated = $request->validate([
-            'firstname' => 'required|max:60',
-            'lastname' => 'required|max:60',
+        $artist = Artist::findOrFail($id);
+        $this->authorize('update', $artist);
+
+        return Inertia::render('Artist/Edit', [
+            'artist' => $artist
         ]);
+    }
+
+    public function update(Request $request, Artist $artist)
+  {
+      $validated = $request->validate([
+          'firstname' => 'required',
+          'lastname' => 'required',
+          'types' => 'array',
+          'types.*' => 'exists:types,id',
+          'shows' => 'array',
+      ]);
+
+      $artist->update($validated);
+
+      // Detach & re-sync artist_type
+      $artist->artistTypes()->delete();
+
+      foreach ($validated['types'] as $typeId) {
+          $artistType = $artist->artistTypes()->create([
+              'type_id' => $typeId,
+          ]);
+
+          // shows par type
+          $showsForThisType = $validated['shows'][$typeId] ?? [];
+          $artistType->shows()->sync($showsForThisType);
       }
-    /**
-     * Remove the specified resource from storage.
-     */
-     public function destroy($id)
+
+      return Inertia::location('/dashboard');
+
+}
+
+
+    public function destroy($id)
     {
-      if (!Gate::allows('delete-artist')) {
-           abort(403);
-       }
-        $artist = Artist::find($id);
-        if($artist) {
-            $artist->delete();
-        }
-        return redirect()->route('artist.index');
+        $artist = Artist::findOrFail($id);
+        $this->authorize('delete', $artist);
+
+        $artist->delete();
+
+        return Inertia::location('/dashboard');
     }
 }

@@ -11,10 +11,7 @@
 
     <div>
       <!-- Section Utilisateurs -->
-      <div v-if="activeSection === 'users'">
-        <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
-        <DataTable :headers="headersUser" :fields="fieldsUser" :rows="formattedUsers" />
-      </div>
+      <AdminUserSection v-if="activeSection === 'users'" />
 
       <!-- Section Réservations -->
       <div v-if="activeSection === 'reservations'">
@@ -25,9 +22,7 @@
       <!-- Section Spectacles -->
       <div v-if="activeSection === 'shows'">
         <h3 class="text-xl font-semibold mb-4">Liste des spectacles</h3>
-
         <DataTable :headers="headersShow" :fields="fieldsShow" :rows="formattedShows">
-          <!-- Slot personnalisé pour les représentations -->
           <template #representations="{ row }">
             <ToggleDetails openLabel="Voir représentations" closeLabel="Masquer représentations">
               <ul class="pl-4 list-disc">
@@ -41,50 +36,32 @@
       </div>
 
       <!-- Section Artistes -->
-      <div v-if="activeSection === 'artists'">
-        <h3 class="text-xl font-semibold mb-4">Liste des artistes</h3>
-        <DataTable :headers="headersArtists" :fields="fieldsArtists" :rows="formattedArtists" />
-      </div>
-
+      <AdminArtistSection v-if="activeSection === 'artists'" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import Button from '@/Components/Button.vue';
-import DataTable from '@/Components/DataTable.vue';
-import ToggleDetails from '@/Components/ToggleDetails.vue';
+import { ref } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 
-import useFormattedReservations from '@/utils/useFormattedReservations';
-import useFormattedUsers from '@/utils/useFormattedUsers';
-import useFormattedShows from '@/utils/useFormattedShows';
-import useFormattedArtists from '@/utils/useFormattedArtists';
+import Button from '@/Components/Button.vue'
+import DataTable from '@/Components/DataTable.vue'
+import ToggleDetails from '@/Components/ToggleDetails.vue'
+import AdminArtistSection from '@/Pages/Dashboard/AdminArtistSection.vue'
+import AdminUserSection from '@/Pages/Dashboard/AdminUserSection.vue'
 
-const { formattedReservations } = useFormattedReservations();
-const { formattedUsers } = useFormattedUsers();
+import useFormattedReservations from '@/utils/useFormattedReservations'
+import useFormattedShows from '@/utils/useFormattedShows'
 
-const { formattedShows } = useFormattedShows();
-const { formattedArtists } = useFormattedArtists();
+const { formattedReservations } = useFormattedReservations()
+const { formattedShows } = useFormattedShows()
 
-const activeSection = ref('');
+const activeSection = ref('')
 
-// Headers pour Admin Réservations
-const headersResa = ['#', 'Utilisateur', 'Spectacle', 'Représentation', 'Statut', 'Détails'];
-const fieldsResa = ['id', 'user', 'showTitle', 'schedule', 'status', 'detail'];
+const headersResa = ['#', 'Utilisateur', 'Spectacle', 'Date', 'Lieu', 'Statut', 'Détails']
+const fieldsResa = ['id', 'user', 'showTitle', 'schedule', 'location', 'status', 'detail']
 
-// Headers pour Admin Utilisateurs
-const headersUser = ['#', 'Prénom', 'Nom', 'Email', 'Langue', 'Rôle'];
-const fieldsUser = ['id', 'firstname', 'lastname', 'email', 'langue', 'role'];
-
-// Headers pour Admin Spectacles
-const headersShow = ['#', 'Titre', 'Description', 'Durée', 'Réservable', 'Représentations'];
-const fieldsShow = ['id', 'title', 'description', 'duration', 'bookable', 'representations'];
-
-// Headers pour Admin Artistes
-const headersArtists = ['Artiste', 'Types', 'Spectacles'];
-const fieldsArtists = ['fullname', 'typesText', 'showsText'];
-
-
+const headersShow = ['#', 'Titre', 'Description', 'Durée', 'Réservable', 'Représentations']
+const fieldsShow = ['id', 'title', 'description', 'duration', 'bookable', 'representations']
 </script>

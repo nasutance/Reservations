@@ -2,45 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reservation;
-use App\Models\User;
-use App\Models\Show;
-use App\Models\Price;
-use App\Models\Role;
-use App\Models\ArtistType;
-use App\Models\Artist;
-use App\Models\Type;
+use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation};
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+
     public function index()
     {
-        $connectedUser = Auth::user()->load('roles');
-        $users = [];
-        $shows = [];
-        $artists = [];
 
+        $user = Auth::user()->load('roles');
 
-
-        $query = $connectedUser->reservations()->with(['representations.show']);
-
-        if ($connectedUser->can('viewAny', Reservation::class)) {
-            $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
-            $shows = Show::with('representations.location')->select('id', 'title', 'description', 'duration', 'bookable')->get();
-            $users = User::with('roles')->select('id', 'firstname', 'lastname', 'email','langue')->get();
-            $artists = Artist::with(['artistTypes.type','artistTypes.shows'])->select('id', 'firstname', 'lastname')->get();
-
+        // Si ADMIN → Accès complet
+        if ($user->can('viewAny', Reservation::class)) {
+            return Inertia::render('Dashboard/Dashboard', [
+                'reservations' => Reservation::with(['representations.show', 'representations.location', 'user'])->get(),
+                'users' => User::with('roles')->get(),
+                'shows' => Show::all(),
+                'representations' => Representation::with('location')->get(),
+                'artists' => Artist::all(),
+                'artistTypes' => ArtistType::with(['type', 'shows'])->get(),
+                'types' => Type::all(),
+                'prices' => Price::select('id', 'description')->get(),
+                'roles' => \App\Models\Role::all(),
+                'isAdmin' => true,
+            ]);
         }
 
+        // Sinon, membre → Ses réservations uniquement
         return Inertia::render('Dashboard/Dashboard', [
-            'reservations' => $query->get(),
-            'users' => $users,
-            'shows' => $shows,
-            'artists' => $artists,
-            'isAdmin' => $connectedUser->hasRole('admin'),
-            'prices' => Price::select('id', 'description')->get(),
+            'reservations' => $user->reservations()->with(['representations.show'])->get(),
+            'isAdmin' => false,
         ]);
     }
 }
