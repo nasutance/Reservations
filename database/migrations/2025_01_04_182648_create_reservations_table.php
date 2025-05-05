@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-      // Crée une table nommée 'reservations' dans la base de données.
-      Schema::create('reservations', function (Blueprint $table) {
-          $table->id(); // Colonne auto-incrémentée pour l'identifiant unique.
-          $table->foreignId('user_id'); // Colonne pour stocker l'ID d'un utilisateur, clé étrangère.
-          $table->string('status', 60); // Colonne pour stocker le statut de la réservation, max 60 caractères.
-          $table->timestamp('booking_date')->useCurrent(); // Colonne pour la date de réservation avec la valeur actuelle par défaut.
-          $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate(); // Colonne pour la date de mise à jour, mise à jour automatique si modifiée.
+        Schema::create('reservations', function (Blueprint $table) {
+            $table->id(); // Colonne auto-incrémentée pour l'identifiant unique.
+            $table->foreignId('user_id'); // Colonne pour stocker l'ID d'un utilisateur, clé étrangère.
+            $table->string('status', 60); // Colonne pour stocker le statut de la réservation.
+            $table->timestamp('booking_date')->useCurrent(); // Colonne pour la date de réservation.
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate(); // Colonne pour la date de mise à jour.
+            $table->softDeletes(); // Ajout de la suppression logique (deleted_at).
 
-          // Définit une clé étrangère pour 'user_id' pointant vers la table 'users'.
-          $table->foreign('user_id')
-                ->references('id')->on('users') // Relie 'user_id' à la colonne 'id' de 'users'.
-                ->onDelete('restrict') // Interdit la suppression d'un utilisateur si des réservations existent.
-                ->onUpdate('cascade'); // Met à jour automatiquement 'user_id' si l'ID utilisateur change.
-      });
+            // Définir la relation avec la table 'users'.
+            $table->foreign('user_id')
+                  ->references('id')->on('users') // Relie 'user_id' à la colonne 'id' de 'users'.
+                  ->onDelete('restrict') // Interdit la suppression d'un utilisateur si des réservations existent.
+                  ->onUpdate('cascade'); // Met à jour automatiquement 'user_id' si l'ID utilisateur change.
+        });
     }
 
     /**
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reservations');
+        Schema::dropIfExists('reservations'); // Supprime la table 'reservations' si elle existe.
     }
 };

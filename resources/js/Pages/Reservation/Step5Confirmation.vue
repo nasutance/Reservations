@@ -74,7 +74,7 @@ function getPrice(priceId) {
 
 function priceLabel(priceId) {
   const p = props.show.prices.find(p => p.id === priceId)
-  return p ? p.description : 'Tarif inconnu'
+  return p ? p.type : 'Tarif inconnu'
 }
 
 const totalPrice = computed(() =>

@@ -10,13 +10,14 @@ class PriceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-      $types = Price::all();
-      return view('price.index',[
-        'prices' => $prices,
-        ]);
-    }
+     public function index()
+     {
+         $prices = Price::all();
+         return view('price.index', [
+             'prices' => $prices,
+         ]);
+     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -56,10 +57,18 @@ class PriceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+     public function update(Request $request, Price $price)
+ {
+     $validated = $request->validate([
+         'type' => 'required|string|max:255',
+         'price' => 'required|numeric|min:0',
+     ]);
+
+     $price->update($validated);
+
+     return Inertia::location('/dashboard');
+ }
+
 
     /**
      * Remove the specified resource from storage.

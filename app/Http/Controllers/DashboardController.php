@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation};
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -24,7 +25,8 @@ class DashboardController extends Controller
                 'artists' => Artist::all(),
                 'artistTypes' => ArtistType::with(['type', 'shows'])->get(),
                 'types' => Type::all(),
-                'prices' => Price::select('id', 'description')->get(),
+                'prices' => Price::all(),
+                'priceShow' => DB::table('price_show')->select('show_id', 'price_id')->get(),
                 'roles' => \App\Models\Role::all(),
                 'isAdmin' => true,
             ]);
@@ -33,6 +35,7 @@ class DashboardController extends Controller
         // Sinon, membre → Ses réservations uniquement
         return Inertia::render('Dashboard/Dashboard', [
             'reservations' => $user->reservations()->with(['representations.show'])->get(),
+            'prices' => Price::all(),
             'isAdmin' => false,
         ]);
     }

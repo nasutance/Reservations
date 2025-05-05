@@ -1,50 +1,89 @@
 <template>
   <div>
     <h2 class="text-xl font-semibold text-gray-800 leading-tight mb-4">Mes réservations</h2>
+    <div class="p-6 text-gray-900">
+      <DataTable
+        v-if="filteredReservations.length"
+        :headers="headersResa"
+        :fields="fieldsResa"
+        :rows="filteredReservations"
+      >
+        <template #status="{ row }">
+          <span class="capitalize font-semibold"
+                :class="{
+                  'text-yellow-600': row.status === 'en attente',
+                  'text-green-600': row.status === 'payée',
+                  'text-red-600': row.status === 'annulée'
+                }">
+            {{ row.status }}
+          </span>
+        </template>
 
-    <div class="py-12">
-      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <div class="p-6 text-gray-900">
+        <template #detail="{ row }">
+          <span v-html="row.detail" />
+        </template>
 
-            <DataTable
-              :headers="['#', 'Spectacle', 'Représentation', 'Statut', 'Détail']"
-              :fields="['id', 'showTitle', 'schedule', 'status', 'détail']"
-              :rows="formattedReservations"
-            />
-
-            <p v-if="!reservations.length" class="mt-4 text-gray-500">
-              Aucune réservation pour le moment.
-            </p>
-
+        <template #actions="{ row }">
+          <div class="flex gap-3">
+            <button
+              v-if="row.status === 'en attente'"
+              @click="updateStatus(row.id, 'payée')"
+              class="text-sm text-green-600 hover:underline"
+            >
+              💳 Payer
+            </button>
+            <button
+              v-if="row.status !== 'annulée'"
+              @click="updateStatus(row.id, 'annulée')"
+              class="text-sm text-red-600 hover:underline"
+            >
+              ❌ Annuler
+            </button>
           </div>
-        </div>
-      </div>
+        </template>
+      </DataTable>
+
+      <p v-else class="mt-4 text-gray-500">
+        Aucune réservation pour le moment.
+      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { usePage } from '@inertiajs/vue3'
-import { formatDate } from '@/utils'
+import { ref, computed } from 'vue'
+import { usePage, router } from '@inertiajs/vue3'
 import DataTable from '@/Components/DataTable.vue'
+import useFormattedReservations from '@/utils/useFormattedReservations'
 
-const reservations = usePage().props.reservations ?? []
-const prices = usePage().props.prices ?? []
+const headersResa = ['#', 'Spectacle', 'Représentation', 'Statut', 'Détail', 'Actions']
+const fieldsResa = ['id', 'showTitle', 'schedule', 'status', 'detail', 'actions']
 
-// Préparation des données à afficher
-const formattedReservations = reservations.map(resa => ({
-  id: resa.id,
-  showTitle: resa.representations[0]?.show?.title || '-',
-  schedule: formatDate(resa.representations[0]?.schedule),
-  status: resa.status,
-  détail: resa.representations.length
-    ? resa.representations
-        .map(rep => {
-          const price = prices.find(p => p.id === rep.pivot.price_id);
-          return price ? `${rep.pivot.quantity} ${price.description}` : `${rep.pivot.quantity} -`;
-        })
-        .join('<br>')
-    : '-',
-}))
+const { formattedReservations, prices } = useFormattedReservations()
+
+const filteredReservations = computed(() =>
+  formattedReservations.value.map(resa => ({
+    ...resa,
+    detail: resa.representations
+      .filter(rep => rep.pivot.quantity > 0)
+      .map(rep => {
+        const price = prices.value.find(p => p.id === rep.pivot.price_id)
+        return price ? `${rep.pivot.quantity} ${price.type}` : `${rep.pivot.quantity} -`
+      })
+      .join('<br>')
+  }))
+)
+
+function updateStatus(id, status) {
+  if (status === 'annulée' && !confirm('Confirmer l’annulation de cette réservation ?')) return
+
+  router.visit(`/reservation/${id}`, {
+    method: 'patch',
+    data: { status },
+    preserveScroll: true,
+    preserveState: false // <= TRÈS important ici
+  })
+
+
+}
 </script>

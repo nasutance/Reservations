@@ -14,8 +14,8 @@ class Price extends Model
       'type',
       'price',
       'description',
-      'startDate',
-      'endDate',
+      'start_date',
+      'end_date',
     ];
 
     protected $table = 'prices';

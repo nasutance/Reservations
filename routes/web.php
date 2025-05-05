@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservation/details/{reservation}', [ReservationController::class, 'show'])->name('reservation.show');
     Route::patch('/reservation/{reservation}', [ReservationController::class, 'update'])->name('reservation.update');
     Route::delete('/reservation/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
+    Route::post('/reservation/{reservation}/add-line', [ReservationController::class, 'addLine'])->name('reservation.addLine');
 });
 
 // Routes personnalisées pour les tags

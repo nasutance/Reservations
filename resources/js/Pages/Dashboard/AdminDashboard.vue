@@ -11,13 +11,11 @@
 
     <div>
       <!-- Section Utilisateurs -->
-      <AdminUserSection v-if="activeSection === 'users'" />
+      <UserSection v-if="activeSection === 'users'" />
 
       <!-- Section Réservations -->
-      <div v-if="activeSection === 'reservations'">
-        <h3 class="text-xl font-semibold mb-4">Liste des réservations</h3>
-        <DataTable :headers="headersResa" :fields="fieldsResa" :rows="formattedReservations" />
-      </div>
+      <ResaSection v-if="activeSection === 'reservations'" />
+
 
       <!-- Section Spectacles -->
       <div v-if="activeSection === 'shows'">
@@ -36,32 +34,29 @@
       </div>
 
       <!-- Section Artistes -->
-      <AdminArtistSection v-if="activeSection === 'artists'" />
+      <ArtistSection v-if="activeSection === 'artists'" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { usePage, router } from '@inertiajs/vue3'
 
 import Button from '@/Components/Button.vue'
 import DataTable from '@/Components/DataTable.vue'
 import ToggleDetails from '@/Components/ToggleDetails.vue'
-import AdminArtistSection from '@/Pages/Dashboard/AdminArtistSection.vue'
-import AdminUserSection from '@/Pages/Dashboard/AdminUserSection.vue'
+import ArtistSection from '@/Pages/Dashboard/ArtistSection.vue'
+import UserSection from '@/Pages/Dashboard/UserSection.vue'
+import ResaSection from '@/Pages/Dashboard/ResaSection.vue'
 
-import useFormattedReservations from '@/utils/useFormattedReservations'
 import useFormattedShows from '@/utils/useFormattedShows'
 
-const { formattedReservations } = useFormattedReservations()
 const { formattedShows } = useFormattedShows()
 
 const activeSection = ref('')
 
-const headersResa = ['#', 'Utilisateur', 'Spectacle', 'Date', 'Lieu', 'Statut', 'Détails']
-const fieldsResa = ['id', 'user', 'showTitle', 'schedule', 'location', 'status', 'detail']
-
 const headersShow = ['#', 'Titre', 'Description', 'Durée', 'Réservable', 'Représentations']
 const fieldsShow = ['id', 'title', 'description', 'duration', 'bookable', 'representations']
+
 </script>

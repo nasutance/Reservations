@@ -9,7 +9,7 @@
         class="border p-4 rounded shadow-sm flex justify-between items-center"
       >
         <div>
-          <p class="font-semibold">{{ price.description }}</p>
+          <p class="font-semibold">{{ price.type }}</p>
           <p class="text-sm text-gray-600">{{ parseFloat(price.price).toFixed(2) }} €</p>
         </div>
 

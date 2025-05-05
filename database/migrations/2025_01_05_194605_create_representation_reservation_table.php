@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('representation_id');
             $table->foreignId('reservation_id');
 
-            $table->tinyInteger('quantity')->default(1);
+            $table->integer('quantity')->default(0);
 
             $table->foreignId('price_id')
                 ->constrained('prices')
