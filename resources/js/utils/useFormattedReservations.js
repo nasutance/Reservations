@@ -32,7 +32,7 @@ export default function useFormattedReservations() {
         id: resa.id,
         user: resa.user ? `${resa.user.firstname} ${resa.user.lastname}` : '-',
         showTitle: resa.representations[0]?.show?.title || '-',
-        schedule: resa.representations[0]?.schedule ? formatDate(resa.representations[0].schedule) : '-',
+        schedule: resa.representations[0]?.schedule ? formatDate(resa.representations[0].schedule,true) : '-',
         location: resa.representations[0]?.location?.designation || '-',
         status: resa.status,
         detail,

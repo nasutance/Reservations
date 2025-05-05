@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Price;
+use Inertia\Inertia;
 
 class PriceController extends Controller
 {
@@ -32,9 +33,19 @@ class PriceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'type' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+    
+        Price::create($validated);
+    
+        return redirect()->back()->with('success', 'Prix créé.');
     }
-
+    
     /**
      * Display the specified resource.
      */

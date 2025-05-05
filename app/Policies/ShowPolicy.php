@@ -69,4 +69,10 @@ class ShowPolicy
     {
         //
     }
+
+    public function assignPrices(User $user, Show $show): bool
+{
+    return $user->roles->contains('role', 'admin');
+}
+
 }

@@ -43,6 +43,7 @@ Route::resources([
     'show' => ShowController::class,
     'location' => LocationController::class,
     'representation' => RepresentationController::class,
+
 ]);
 
 // Ressource "user" sans les routes POST
@@ -61,11 +62,9 @@ Route::middleware('auth')->group(function () {
 });
 
 // Routes personnalisées pour les tags
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::post('/shows/{show}/tags', [TagController::class, 'attach'])->name('show.attachTag');
 });
-
-Route::get('/shows/without-tag/{tag}', [ShowController::class, 'withoutTag'])->name('show.withoutTag');
 
 // Page de remerciement après une réservation
 Route::get('/merci', fn () => Inertia::render('Reservation/Thanks', [

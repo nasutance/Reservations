@@ -8,4 +8,11 @@ export const formSchemas = {
      { name: 'firstname', label: 'Prénom', type: 'text', editOnly: true },
      { name: 'lastname', label: 'Nom', type: 'text', editOnly: true }
    ],
+   price: [
+    { name: 'type', label: 'Libellé', type: 'text' },
+    { name: 'description', label: 'Description', type: 'text' },
+    { name: 'price', label: 'Montant', type: 'number' },
+    { name: 'start_date', label: 'Début', type: 'date' },
+    { name: 'end_date', label: 'Fin', type: 'date' },
+  ],
 }

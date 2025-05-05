@@ -1,0 +1,1 @@
+function r(t,i={time:!0}){if(!t)return"-";const e=i.time?{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}:{day:"2-digit",month:"2-digit",year:"numeric"};return new Date(t).toLocaleString("fr-BE",e)}export{r as f};

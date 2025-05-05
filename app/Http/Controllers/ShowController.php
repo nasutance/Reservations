@@ -7,9 +7,11 @@ use App\Models\Show;
 use Illuminate\Http\Request;
 use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ShowController extends Controller
 {
+    use AuthorizesRequests;
 
   public function index(Request $request)
 {
@@ -107,5 +109,25 @@ public function show(string $id)
         'allTags' => Tag::all(['id', 'tag']),
     ]);
 }
+
+public function update(Request $request, Show $show)
+{
+    $validated = $request->validate([
+        'bookable' => 'required|boolean',
+        'price_ids' => 'nullable|array',
+        'price_ids.*' => 'exists:prices,id',
+    ]);
+
+    // Mettre à jour le champ `bookable`
+    $show->update([
+        'bookable' => $validated['bookable'],
+    ]);
+
+    // Synchroniser les prix associés
+    $show->prices()->sync($validated['price_ids'] ?? []);
+
+    return redirect()->back()->with('success', 'Spectacle mis à jour.');
+}
+
 
 }
