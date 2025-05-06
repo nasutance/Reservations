@@ -2,132 +2,216 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Show;
-use Illuminate\Http\Request;
 use App\Models\Tag;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ShowController extends Controller
 {
     use AuthorizesRequests;
 
-  public function index(Request $request)
+    public function export(): StreamedResponse
+    {
+        $this->authorize('viewAny', Show::class);
+
+        $filename = 'spectacles_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+        
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, ['ID', 'Titre', 'Description', 'Durée', 'Réservable']);
+
+            Show::all()->each(function ($show) use ($handle) {
+                $clean = fn($str) => str_replace(["\r\n", "\n", "\r"], ' ', $str);
+            
+                fputcsv($handle, [
+                    $show->id,
+                    $clean($show->title),
+                    $clean($show->description),
+                    $show->duration,
+                    $show->bookable ? 'oui' : 'non',
+                ]);
+            });
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function import(Request $request)
 {
-    $query = Show::query();
+    $this->authorize('create', Show::class); 
 
-    // Filtre par mot-clé (titre ou description)
-    if ($request->filled('q')) {
-        $query->where(function($q) use ($request) {
-            $q->where('title', 'like', '%' . $request->q . '%')
-              ->orWhere('description', 'like', '%' . $request->q . '%');
-        });
-    }
-
-    // Filtrer par artiste
-    if ($request->has('artist')) {
-        $artistName = $request->query('artist');
-        $query->whereHas('artistTypes.artist', function ($q) use ($artistName) {
-            $q->whereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%$artistName%"]);
-        });
-    }
-
-    // Filtrer par ville
-    if ($request->has('location')) {
-        $locationName = $request->query('location');
-        $query->whereHas('location.locality', function ($q) use ($locationName) {
-            $q->where('locality', 'like', "%$locationName%");
-        });
-    }
-
-    // Filtrer par code postal
-    if ($request->filled('postal_code')) {
-        $query->whereHas('representations.location', function ($q) use ($request) {
-            $q->where('locality_postal_code', $request->postal_code);
-        });
-    }
-
-    // Durée min / max
-    if ($request->filled('min_duration')) {
-        $query->where('duration', '>=', $request->min_duration);
-    }
-
-    if ($request->filled('max_duration')) {
-        $query->where('duration', '<=', $request->max_duration);
-    }
-
-    // Tri dynamique
-    if ($request->filled('sort')) {
-        $sort = $request->query('sort');
-        $direction = $request->query('direction', 'asc');
-        $query->orderBy($sort, $direction);
-    }
-
-    // Filtrer par tag
-if ($request->filled('tag')) {
-    $query->whereHas('tags', function ($q) use ($request) {
-        $q->where('id', $request->tag);
-    });
-}
-
-if ($request->filled('without_tag')) {
-    $query->whereDoesntHave('tags', function ($q) use ($request) {
-        $q->where('tags.id', $request->without_tag);
-    });
-}
-
-
-    // Charger les représentations
-    $query->withCount('representations');
-
-    // Pagination (10 par page par défaut)
-    $shows = $query->paginate($request->get('per_page', 10))->withQueryString();
-
-    return Inertia::render('Show/Index', [
-        'shows' => $shows,
-        'filters' => $request->only([
-            'q', 'artist', 'location', 'postal_code',
-            'min_duration', 'max_duration', 'sort', 'direction', 'tag'
-        ]),
-    'tags' => Tag::all(['id', 'tag']),
-    ]);
-}
-
-public function show(string $id)
-{
-    $show = Show::with([
-        'artistTypes.artist',
-        'artistTypes.type',
-        'representations.location',
-        'location',
-        'tags'
-    ])->findOrFail($id);
-
-    return Inertia::render('Show/Show', [
-        'show' => $show,
-        'allTags' => Tag::all(['id', 'tag']),
-    ]);
-}
-
-public function update(Request $request, Show $show)
-{
-    $validated = $request->validate([
-        'bookable' => 'required|boolean',
-        'price_ids' => 'nullable|array',
-        'price_ids.*' => 'exists:prices,id',
+    $request->validate([
+        'csv_file' => 'required|file|mimes:csv,txt',
     ]);
 
-    // Mettre à jour le champ `bookable`
-    $show->update([
-        'bookable' => $validated['bookable'],
-    ]);
+    $file = $request->file('csv_file');
+    $handle = fopen($file->getRealPath(), 'r');
 
-    // Synchroniser les prix associés
-    $show->prices()->sync($validated['price_ids'] ?? []);
+    $headers = fgetcsv($handle);
 
-    return redirect()->back()->with('success', 'Spectacle mis à jour.');
+    // Nettoyage UTF-8 BOM
+    $headers[0] = preg_replace('/\x{FEFF}/u', '', $headers[0]);
+
+    while (($row = fgetcsv($handle)) !== false) {
+        $data = array_combine($headers, $row);
+
+        Validator::make($data, [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'duration' => 'nullable|numeric|min:1',
+            'bookable' => 'required|in:0,1',
+        ])->validate();
+
+        Show::updateOrCreate(
+            ['title' => $data['title']],
+            [
+                'description' => $data['description'],
+                'duration' => $data['duration'],
+                'bookable' => $data['bookable'],
+                'created_in' => now()->year, // ← ici le fix
+                'slug' => Str::slug($data['title']),
+            ]
+        );
+        
+    }
+
+    fclose($handle);
+
+    return back()->with('success', 'Importation CSV réussie.');
 }
 
+    public function index(Request $request)
+    {
+        $query = Show::query();
 
+        // 🔍 Filtres dynamiques
+        if ($request->filled('q')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->q . '%')
+                  ->orWhere('description', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        if ($request->filled('artist')) {
+            $query->whereHas('artistTypes.artist', fn ($q) =>
+                $q->whereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$request->artist}%"])
+            );
+        }
+
+        if ($request->filled('location')) {
+            $query->whereHas('location.locality', fn ($q) =>
+                $q->where('locality', 'like', "%{$request->location}%")
+            );
+        }
+
+        if ($request->filled('postal_code')) {
+            $query->whereHas('representations.location', fn ($q) =>
+                $q->where('locality_postal_code', $request->postal_code)
+            );
+        }
+
+        if ($request->filled('min_duration')) {
+            $query->where('duration', '>=', $request->min_duration);
+        }
+
+        if ($request->filled('max_duration')) {
+            $query->where('duration', '<=', $request->max_duration);
+        }
+
+        if ($request->filled('sort')) {
+            $query->orderBy($request->sort, $request->get('direction', 'asc'));
+        }
+
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', fn ($q) =>
+                $q->where('id', $request->tag)
+            );
+        }
+
+        if ($request->filled('without_tag')) {
+            $query->whereDoesntHave('tags', fn ($q) =>
+                $q->where('tags.id', $request->without_tag)
+            );
+        }
+
+        // Relations
+        $query->withCount('representations');
+
+        return Inertia::render('Show/Index', [
+            'shows' => $query->paginate($request->get('per_page', 10))->withQueryString(),
+            'filters' => $request->only([
+                'q', 'artist', 'location', 'postal_code',
+                'min_duration', 'max_duration', 'sort', 'direction', 'tag'
+            ]),
+            'tags' => Tag::all(['id', 'tag']),
+        ]);
+    }
+
+    public function show(string $id)
+    {
+        $show = Show::with([
+            'artistTypes.artist',
+            'artistTypes.type',
+            'representations.location',
+            'location',
+            'tags'
+        ])->findOrFail($id);
+
+        return Inertia::render('Show/Show', [
+            'show' => $show,
+            'allTags' => Tag::all(['id', 'tag']),
+        ]);
+    }
+
+    public function update(Request $request, Show $show)
+    {
+        $this->authorize('update', $show);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'duration' => 'nullable|numeric|min:1',
+            'bookable' => 'required|boolean',
+            'price_ids' => 'nullable|array',
+            'price_ids.*' => 'exists:prices,id',
+        ]);
+
+        $show->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'duration' => $validated['duration'],
+            'bookable' => (bool) $validated['bookable'],
+        ]);
+
+        $show->prices()->sync($validated['price_ids'] ?? []);
+
+        return redirect()->back()->with('success', 'Spectacle mis à jour.');
+    }
+
+    public function destroy(Show $show)
+    {
+        $this->authorize('delete', $show);
+
+        $show->delete();
+
+        return redirect()->back()->with('success', 'Spectacle supprimé.');
+    }
 }

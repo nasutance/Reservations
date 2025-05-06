@@ -14,14 +14,15 @@ export default function useFormattedShows() {
           location: rep.location || null
         }))
 
-      return {
-        id: show.id,
-        title: show.title,
-        description: show.description,
-        duration: show.duration ? `${show.duration} min` : '-',
-        bookable: show.bookable ? 'Oui' : 'Non',
-        representations: reps
-      }
+        return {
+          id: show.id,
+          title: show.title,
+          description: show.description,
+          duration: show.duration ? `${show.duration}` : '-',
+          bookable: Boolean(show.bookable), 
+          representations: reps
+        }
+        
     })
   })
 

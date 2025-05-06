@@ -1,31 +1,72 @@
 <template>
   <div>
     <h3 class="text-xl font-semibold mb-4">Liste des spectacles</h3>
+    <div class="flex gap-4 mb-4">
+      <button
+        @click="exportCSV"
+        class="text-sm text-blue-600 hover:underline"
+      >
+        📤Exporter en CSV
+      </button>
+
+      <input
+        type="file"
+        ref="csvFile"
+        @change="importCSV"
+        accept=".csv"
+        class="hidden"
+      />
+      <button
+        @click="$refs.csvFile.click()"
+        class="text-sm text-blue-600 hover:underline"
+      >
+        📥Importer un CSV
+      </button>
+    </div>
 
     <DataTable :headers="headersShow" :fields="fieldsShow" :rows="formattedShows">
 
+      <!-- Titre -->
+      <template #title="{ row }">
+        <div v-if="isEditing[row.id]">
+          <input v-model="row.title" class="border px-2 py-1 rounded text-sm w-full" />
+        </div>
+        <span v-else>{{ row.title }}</span>
+      </template>
+
+      <!-- Description -->
+      <template #description="{ row }">
+        <div v-if="isEditing[row.id]">
+          <textarea v-model="row.description" class="border px-2 py-1 rounded text-sm w-full" rows="3" />
+        </div>
+        <span v-else>{{ row.description }}</span>
+      </template>
+
+      <!-- Durée -->
+      <template #duration="{ row }">
+        <div v-if="isEditing[row.id]">
+          <input type="number" v-model="row.duration" min="1" class="border px-2 py-1 rounded text-sm w-24" />
+        </div>
+        <span v-else>{{ row.duration }} '</span>
+      </template>
+
       <!-- Réservable -->
       <template #bookable="{ row }">
-        <div v-if="isEditing[row.id]">
-          <select
-            v-model="row.bookable"
-            class="border px-2 py-1 rounded text-sm"
-          >
-            <option :value="true">Oui</option>
-            <option :value="false">Non</option>
-          </select>
+        <div class="flex justify-center items-center h-full">
+          <template v-if="isEditing[row.id]">
+            <select v-model="row.bookable" class="border px-2 py-1 rounded text-sm">
+              <option :value="1">Oui</option>
+              <option :value="0">Non</option>
+            </select>
+          </template>
+          <span v-else>{{ row.bookable ? 'Oui' : 'Non' }}</span>
         </div>
-        <span v-else>{{ row.bookable ? 'Oui' : 'Non' }}</span>
       </template>
 
       <!-- Tarifs associés -->
       <template #prices="{ row }">
-        <div v-if="isEditing[row.id]" class="flex flex-col gap-1">
-          <label
-            v-for="price in prices"
-            :key="price.id"
-            class="flex items-center gap-2 text-sm"
-          >
+        <div v-if="isEditing[row.id]" class="flex flex-col gap-2">
+          <label v-for="price in prices" :key="price.id" class="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               :value="price.id"
@@ -36,10 +77,7 @@
           </label>
         </div>
         <ul v-else class="text-sm text-gray-700 list-disc pl-4 mb-1">
-          <li
-            v-for="price in getPricesForShow(row.id)"
-            :key="price.id"
-          >
+          <li v-for="price in getPricesForShow(row.id)" :key="price.id">
             {{ price.description }} — {{ price.price }}€
           </li>
         </ul>
@@ -47,18 +85,21 @@
 
       <!-- Représentations -->
       <template #representations="{ row }">
-        <ToggleDetails openLabel="Voir représentations" closeLabel="Masquer représentations">
-          <ul class="pl-4 list-disc">
-            <li v-for="rep in row.representations" :key="rep.id">
-              📅 {{ rep.schedule }} — 📍 {{ rep.location?.designation || '-' }}
-            </li>
-          </ul>
-        </ToggleDetails>
+        <div class="flex justify-center items-center h-full">
+          <ToggleDetails openLabel="Détails" closeLabel="Masquer">
+            <ul class="text-sm text-gray-700 list-disc pl-4 mb-1">
+              <li v-for="rep in row.representations" :key="rep.id">
+                {{ formatDate(rep.schedule, { time: true, seconds: false }) }}<br />
+                {{ rep.location?.designation || '-' }}
+              </li>
+            </ul>
+          </ToggleDetails>
+        </div>
       </template>
 
       <!-- Actions -->
       <template #actions="{ row }">
-        <div class="flex gap-2">
+        <div class="flex flex-col gap-2 items-start mt-1">
           <button
             v-if="!isEditing[row.id]"
             class="text-blue-600 text-sm hover:underline"
@@ -67,37 +108,34 @@
             ✏️ Modifier
           </button>
 
-          <div v-else class="flex gap-2">
-            <button
-              class="bg-green-600 text-white text-sm px-2 py-1 rounded"
-              @click="saveRow(row)"
-            >
-              💾 Enregistrer
+          <template v-else>
+            <button class="text-green-600 text-sm hover:underline" @click="saveRow(row)">
+              ✅Enregistrer
             </button>
-            <button
-              class="bg-gray-300 text-gray-800 text-sm px-2 py-1 rounded"
-              @click="cancelEdit(row.id)"
-            >
-              ❌ Annuler
+            <button class="text-gray-600 text-sm hover:underline" @click="cancelEdit(row.id)">
+              🔄Annuler
             </button>
-          </div>
+            <button class="text-red-600 text-sm hover:underline" @click="deleteShow(row.id)">
+              🗑️Supprimer
+            </button>
+          </template>
         </div>
       </template>
-
     </DataTable>
   </div>
 </template>
 
 <script setup>
-import useFormattedShows from '@/utils/useFormattedShows'
 import { ref } from 'vue'
+import { usePage, router } from '@inertiajs/vue3'
+import useFormattedShows from '@/utils/useFormattedShows'
 import DataTable from '@/Components/DataTable.vue'
 import ToggleDetails from '@/Components/ToggleDetails.vue'
-import { usePage, router } from '@inertiajs/vue3'
+import { formatDate } from '@/utils/formatDate.js'
 
 const { formattedShows } = useFormattedShows()
 
-const headersShow = ['Titre', 'Description', 'Durée', 'Réservable', 'Tarifs', 'Représentations', 'Actions']
+const headersShow = ['Titre', 'Description', 'Durée', 'Réservable', 'Tarification', 'Représentations', 'Actions']
 const fieldsShow = ['title', 'description', 'duration', 'bookable', 'prices', 'representations', 'actions']
 
 const prices = usePage().props.prices ?? []
@@ -106,7 +144,7 @@ const priceShow = usePage().props.priceShow ?? []
 const assignedPrices = ref({})
 const isEditing = ref({})
 
-// Initialisation des tarifs associés à chaque show
+// Pré-remplissage des tarifs associés
 formattedShows.value.forEach(show => {
   assignedPrices.value[show.id] = priceShow
     .filter(ps => ps.show_id === show.id)
@@ -131,7 +169,10 @@ function cancelEdit(id) {
 
 function saveRow(row) {
   router.put(`/show/${row.id}`, {
-    bookable: row.bookable,
+    title: row.title,
+    description: row.description,
+    duration: row.duration,
+    bookable: Number(row.bookable),
     price_ids: assignedPrices.value[row.id]
   }, {
     onSuccess: () => {
@@ -140,4 +181,37 @@ function saveRow(row) {
     }
   })
 }
+
+function deleteShow(id) {
+  if (!confirm('Supprimer définitivement ce spectacle ?')) return
+
+  router.delete(`/show/${id}`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      isEditing.value[id] = false
+      window.location.reload()
+    }
+  })
+}
+
+function exportCSV() {
+  window.open(route('shows.export'), '_blank');
+}
+
+function importCSV(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('csv_file', file)
+
+  router.post(route('shows.import'), formData, {
+    forceFormData: true,
+    onSuccess: () => {
+      window.location.reload()
+    }
+  })
+}
+
+
 </script>

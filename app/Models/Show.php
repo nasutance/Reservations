@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Show extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     /**
     * The attributes that are mass assignable.
     * @var array
@@ -26,6 +28,10 @@ class Show extends Model
       'location_id',
       'bookable',
     ];
+
+    protected $casts = [
+      'bookable' => 'boolean',
+  ];  
 
     /**
     * The table associated with the model.

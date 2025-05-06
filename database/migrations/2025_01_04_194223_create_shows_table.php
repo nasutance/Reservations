@@ -24,7 +24,7 @@ return new class extends Migration
       $table->boolean('bookable')->default(false);
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->nullable();
-
+      $table->softDeletes(); 
       $table->foreign('location_id')->references('id')->on('locations')
             ->onDelete('restrict')->onUpdate('cascade');
     }

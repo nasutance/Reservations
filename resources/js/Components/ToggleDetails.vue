@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button @click="toggle" class="p-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition">
+    <button @click="toggle" class="p-2 rounded text-grey hover:underline transition">
       {{ isOpen ? closeLabel : openLabel }}
     </button>
     <div v-if="isOpen" class="mt-2">
@@ -15,7 +15,7 @@ import { ref } from 'vue';
 const props = defineProps({
   openLabel: {
     type: String,
-    default: 'Voir détails'
+    default: 'Voir'
   },
   closeLabel: {
     type: String,

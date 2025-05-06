@@ -19,8 +19,9 @@ class ShowPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        return $user->roles->contains('role', 'admin');
     }
+    
 
     /**
      * Determine whether the user can view the model.
@@ -35,24 +36,27 @@ class ShowPolicy
      */
     public function create(User $user): bool
     {
-        //
+        return $user->roles->contains('role', 'admin');
     }
+    
 
     /**
      * Determine whether the user can update the model.
      */
     public function update(User $user, Show $show): bool
     {
-        //
+        return $user->roles->contains('role', 'admin');
     }
+    
 
     /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Show $show): bool
     {
-        //
+        return $user->roles->contains('role', 'admin');
     }
+    
 
     /**
      * Determine whether the user can restore the model.
