@@ -8,75 +8,43 @@ use Illuminate\Auth\Access\Response;
 
 class ShowPolicy
 {
-
-  public function addTag(User $user, Show $show): bool
-{
-    return $user->roles->contains('role', 'admin');
-}
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user)
     {
-        return $user->roles->contains('role', 'admin');
+        return $user->hasAnyRole(['admin', 'affiliate', 'member']);
     }
     
-
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Show $show): bool
+    public function view(User $user, Show $show)
     {
-        //
-    }
-
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return $user->roles->contains('role', 'admin');
+        return $user->hasAnyRole(['admin', 'affiliate', 'member']);
     }
     
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Show $show): bool
+    public function create(User $user)
     {
-        return $user->roles->contains('role', 'admin');
-    }
-    
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Show $show): bool
-    {
-        return $user->roles->contains('role', 'admin');
-    }
-    
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Show $show): bool
-    {
-        //
+        return $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Show $show): bool
+    public function update(User $user, Show $show)
     {
-        //
+        return $user->hasRole('admin');
     }
 
-    public function assignPrices(User $user, Show $show): bool
-{
-    return $user->roles->contains('role', 'admin');
-}
+    public function delete(User $user, Show $show)
+    {
+        return $user->hasRole('admin');
+    }
 
+    public function assignPrices(User $user, Show $show)
+    {
+        return $user->hasRole('admin');
+    }
+
+    public function addTag(User $user, Show $show)
+    {
+        return $user->hasRole('admin');
+    }
+
+    public function export(User $user)
+    {
+        return $user->hasRole('admin');
+    }
 }

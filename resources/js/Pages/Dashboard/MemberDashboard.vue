@@ -1,12 +1,70 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { usePage, router } from '@inertiajs/vue3'
+import DataTable from '@/Components/DataTable.vue'
+import { formatDate } from '@/utils/formatDate.js'
+
+// Props Inertia
+const reservations = usePage().props.reservations ?? []
+const prices = usePage().props.prices ?? []
+
+// Formattage des réservations
+const formattedReservations = computed(() => {
+  return reservations.map(resa => {
+    const enrichedReps = (resa.representations ?? []).map(rep => ({
+      ...rep,
+      pivot: {
+        ...rep.pivot,
+        original_price_id: rep.pivot.price_id,
+        original_quantity: rep.pivot.quantity,
+      },
+    }))
+
+    const detail = enrichedReps
+      .filter(rep => rep.pivot.quantity > 0)
+      .map(rep => {
+        const price = prices.find(p => p.id === rep.pivot.price_id)
+        return price ? `${rep.pivot.quantity} ${price.type}` : `${rep.pivot.quantity} -`
+      })
+      .join('<br>')
+
+    return {
+      id: resa.id,
+      user: resa.user ? `${resa.user.firstname} ${resa.user.lastname}` : '-',
+      showTitle: enrichedReps[0]?.show?.title || '-',
+      schedule: enrichedReps[0]?.schedule ? formatDate(enrichedReps[0].schedule, true) : '-',
+      location: enrichedReps[0]?.location?.designation || '-',
+      status: resa.status,
+      detail,
+      representations: enrichedReps
+    }
+  })
+})
+
+const headersResa = ['#', 'Spectacle', 'Représentation', 'Statut', 'Détail', 'Actions']
+const fieldsResa = ['id', 'showTitle', 'schedule', 'status', 'detail', 'actions']
+
+function updateStatus(id, status) {
+  if (status === 'annulée' && !confirm('Confirmer l’annulation de cette réservation ?')) return
+
+  router.visit(`/reservation/${id}`, {
+    method: 'patch',
+    data: { status },
+    preserveScroll: true,
+    preserveState: false // <- important ici
+  })
+}
+</script>
+
 <template>
   <div>
     <h2 class="text-xl font-semibold text-gray-800 leading-tight mb-4">Mes réservations</h2>
     <div class="p-6 text-gray-900">
       <DataTable
-        v-if="filteredReservations.length"
+        v-if="formattedReservations.length"
         :headers="headersResa"
         :fields="fieldsResa"
-        :rows="filteredReservations"
+        :rows="formattedReservations"
       >
         <template #status="{ row }">
           <span class="capitalize font-semibold"
@@ -49,41 +107,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue'
-import { usePage, router } from '@inertiajs/vue3'
-import DataTable from '@/Components/DataTable.vue'
-import useFormattedReservations from '@/utils/useFormattedReservations'
-
-const headersResa = ['#', 'Spectacle', 'Représentation', 'Statut', 'Détail', 'Actions']
-const fieldsResa = ['id', 'showTitle', 'schedule', 'status', 'detail', 'actions']
-
-const { formattedReservations, prices } = useFormattedReservations()
-
-const filteredReservations = computed(() =>
-  formattedReservations.value.map(resa => ({
-    ...resa,
-    detail: resa.representations
-      .filter(rep => rep.pivot.quantity > 0)
-      .map(rep => {
-        const price = prices.value.find(p => p.id === rep.pivot.price_id)
-        return price ? `${rep.pivot.quantity} ${price.type}` : `${rep.pivot.quantity} -`
-      })
-      .join('<br>')
-  }))
-)
-
-function updateStatus(id, status) {
-  if (status === 'annulée' && !confirm('Confirmer l’annulation de cette réservation ?')) return
-
-  router.visit(`/reservation/${id}`, {
-    method: 'patch',
-    data: { status },
-    preserveScroll: true,
-    preserveState: false // <= TRÈS important ici
-  })
-
-
-}
-</script>

@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -70,9 +72,14 @@ class User extends Authenticatable implements MustVerifyEmail
       return $this->belongsToMany(Role::class);
     }
 
-    public function hasRole($role)
+    public function hasRole(string $role): bool
 {
-    return $this->roles->contains('role', $role);
+    return $this->roles->pluck('role')->contains($role);
+}
+
+public function hasAnyRole(array $roles): bool
+{
+    return $this->roles->pluck('role')->intersect($roles)->isNotEmpty();
 }
 
 

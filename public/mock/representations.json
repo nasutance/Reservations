@@ -1,0 +1,62 @@
+[
+    {
+      "id": 1,
+      "schedule": "2025-10-04 20:00:00",
+      "show_id": 1,
+      "location_id": 1
+    },
+    {
+      "id": 2,
+      "schedule": "2025-10-06 20:00:00",
+      "show_id": 1,
+      "location_id": 1
+    },
+    {
+      "id": 3,
+      "schedule": "2025-10-07 20:00:00",
+      "show_id": 2,
+      "location_id": 2
+    },
+    {
+      "id": 4,
+      "schedule": "2025-10-09 20:00:00",
+      "show_id": 2,
+      "location_id": 2
+    },
+    {
+      "id": 5,
+      "schedule": "2025-10-10 20:00:00",
+      "show_id": 3,
+      "location_id": 3
+    },
+    {
+      "id": 6,
+      "schedule": "2025-10-12 20:00:00",
+      "show_id": 3,
+      "location_id": 3
+    },
+    {
+      "id": 7,
+      "schedule": "2025-10-13 20:00:00",
+      "show_id": 4,
+      "location_id": 4
+    },
+    {
+      "id": 8,
+      "schedule": "2025-10-15 20:00:00",
+      "show_id": 4,
+      "location_id": 4
+    },
+    {
+      "id": 9,
+      "schedule": "2025-10-16 20:00:00",
+      "show_id": 5,
+      "location_id": 5
+    },
+    {
+      "id": 10,
+      "schedule": "2025-10-18 20:00:00",
+      "show_id": 5,
+      "location_id": 5
+    }
+  ]

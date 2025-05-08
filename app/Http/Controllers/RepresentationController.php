@@ -2,39 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Representation;
-use Carbon\Carbon;
+use App\Models\Show;
+use App\Models\Location;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Inertia\Inertia;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class RepresentationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use AuthorizesRequests;
+
     public function index()
     {
-        return view('representation.index', [
-            'representations' => Representation::all(),
+        $this->authorize('viewAny', Representation::class);
+
+        return Inertia::render('Dashboard/Dashboard', [
+            'representations' => Representation::with(['show', 'location'])->get(),
+            'shows' => Show::all(),
+            'locations' => Location::all(),
         ]);
     }
 
-    // …
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(Request $request)
     {
-        $representation = Representation::find($id);
-        $date = Carbon::parse($representation->schedule)->format('d/m/Y');
-        $time = Carbon::parse($representation->schedule)->format('G:i');
+        $this->authorize('create', Representation::class);
 
-        return view('representation.show', [
-            'representation' => $representation,
-            'rep_date' => $date,
-            'rep_time' => $time,
+        $validated = $request->validate([
+            'schedule' => 'required|date',
+            'show_id' => 'required|exists:shows,id',
+            'location_id' => 'required|exists:locations,id',
         ]);
+
+        $representation = Representation::create($validated);
+
+        return Inertia::location('/dashboard');
     }
 
-    // …
+    public function update(Request $request, $id)
+    {
+        $representation = Representation::findOrFail($id);
+
+        $this->authorize('update', $representation);
+
+        $validated = $request->validate([
+            'schedule' => 'required|date',
+            'show_id' => 'required|exists:shows,id',
+            'location_id' => 'required|exists:locations,id',
+        ]);
+
+        $representation->update($validated);
+
+        return Inertia::location('/dashboard');
+    }
+
+    public function destroy($id)
+    {
+        $representation = Representation::findOrFail($id);
+
+        $this->authorize('delete', $representation);
+
+        $representation->delete();
+
+        return Inertia::location('/dashboard');
+    }
 }

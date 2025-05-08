@@ -20,7 +20,7 @@ class ShowController extends Controller
 
     public function export(): StreamedResponse
     {
-        $this->authorize('viewAny', Show::class);
+        $this->authorize('export', Show::class);
 
         $filename = 'spectacles_' . now()->format('Y-m-d_H-i-s') . '.csv';
 

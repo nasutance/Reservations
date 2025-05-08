@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\API\ShowController;
 use App\Http\Controllers\API\ReservationController;
 use App\Http\Controllers\API\RepresentationController;
+use App\Http\Controllers\ImportExternalDataController;
 
 Route::post('/login', function (Request $request) {
   $request->validate([
@@ -40,3 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::apiResource('representations', RepresentationController::class);
 });
 Route::get('/shows', [ShowController::class, 'index']); // sans middleware pou r les tests de la vue
+
+Route::post('/import-localities', [ImportExternalDataController::class, 'importLocalities']);
+Route::post('/import-locations', [ImportExternalDataController::class, 'importLocations']);
+Route::post('/import-shows', [ImportExternalDataController::class, 'importShows']);
+Route::post('/import-representations', [ImportExternalDataController::class, 'importRepresentations']);

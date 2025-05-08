@@ -4,10 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class UserController extends Controller
 {
+
+    public function index()
+    {
+        return response()->json(
+        \App\Models\User::with('roles')->get()
+        );
+    }
+
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -22,13 +29,16 @@ class UserController extends Controller
         $user->update($validated);
         $user->roles()->sync($validated['roles'] ?? []);
 
-        return Inertia::location('/dashboard');
+        return response()->json([
+            'message' => 'Utilisateur mis à jour',
+            'user' => $user->load('roles')
+        ]);
     }
 
     public function destroy(User $user)
     {
-      $user->delete(); // suppression logique
-      return Inertia::location('/dashboard');
-    }
+        $user->delete();
 
+        return response()->json(['message' => 'Utilisateur supprimé']);
+    }
 }

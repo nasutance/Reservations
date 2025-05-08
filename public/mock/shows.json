@@ -1,0 +1,57 @@
+[
+    {
+      "id": 1,
+      "slug": "ayiti",
+      "title": "Ayiti",
+      "description": "Un homme est bloqué à l’aéroport. Questionné par les douaniers...",
+      "poster_url": "https://picsum.photos/id/101/200/300",
+      "duration": 90,
+      "created_in": 2019,
+      "location_id": 1,
+      "bookable": true
+    },
+    {
+      "id": 2,
+      "slug": "cible-mouvante",
+      "title": "Cible mouvante",
+      "description": "Dans ce thriller d’anticipation, des adultes semblent alimenter une crainte envers les enfants.",
+      "poster_url": "https://picsum.photos/id/102/200/300",
+      "duration": 85,
+      "created_in": 2022,
+      "location_id": 2,
+      "bookable": true
+    },
+    {
+      "id": 3,
+      "slug": "andromaque",
+      "title": "Andromaque",
+      "description": "Tragédie de Jean Racine, mise en scène contemporaine et intense.",
+      "poster_url": "https://picsum.photos/id/103/200/300",
+      "duration": 100,
+      "created_in": 2021,
+      "location_id": 3,
+      "bookable": true
+    },
+    {
+      "id": 4,
+      "slug": "le-misanthrope",
+      "title": "Le Misanthrope",
+      "description": "Comédie de Molière traitant des relations sociales et des faux-semblants.",
+      "poster_url": "https://picsum.photos/id/104/200/300",
+      "duration": 95,
+      "created_in": 2020,
+      "location_id": 4,
+      "bookable": false
+    },
+    {
+      "id": 5,
+      "slug": "la-reunification",
+      "title": "La Réunification des Deux Corées",
+      "description": "Une suite de tableaux sur la complexité de l’amour par Joël Pommerat.",
+      "poster_url": "https://picsum.photos/id/105/200/300",
+      "duration": 80,
+      "created_in": 2023,
+      "location_id": 5,
+      "bookable": true
+    }
+  ]

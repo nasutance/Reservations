@@ -14,7 +14,7 @@ const menuOpen = ref(false)
       <Link href="/" class="text-lg font-bold text-indigo-700 flex items-center gap-1">
         🎟️ Réservations
       </Link>
-
+      <link href="{{ url('/rss') }}" rel="alternate" type="application/rss+xml" title="Flux RSS des représentations" >
       <div class="hidden sm:flex items-center space-x-4 text-sm">
         <Link :href="route('show.index')" class="text-gray-700 hover:text-indigo-600">
           Spectacles

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FeedController;
 use Inertia\Inertia;
 use App\Http\Controllers\{
     ProfileController,
@@ -17,6 +18,8 @@ use App\Http\Controllers\{
     DashboardController,
     UserController
 };
+
+Route::get('/rss', [FeedController::class, 'index']);
 
 // Page d’accueil
 Route::get('/', fn () => Inertia::render('Home'));
@@ -47,7 +50,10 @@ Route::resources([
 ]);
 
 // Ressource "user" sans les routes POST
-Route::resource('users', UserController::class)->except(['create', 'store']);
+Route::middleware(['auth'])->group(function () {
+    Route::resource('users', UserController::class)->except(['create', 'store']);
+});
+
 
 
 // Routes spécifiques aux réservations
@@ -59,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/reservation/{reservation}', [ReservationController::class, 'update'])->name('reservation.update');
     Route::delete('/reservation/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
     Route::post('/reservation/{reservation}/add-line', [ReservationController::class, 'addLine'])->name('reservation.addLine');
+    Route::delete('/reservation/{reservation}/line/{representation}/{price}', [ReservationController::class, 'destroyLine']);
 });
 
 // Routes personnalisées pour les tags
@@ -78,3 +85,4 @@ Route::middleware(['auth', 'can:create,App\Models\Show'])->group(function () {
     Route::post('/shows/import', [ShowController::class, 'import'])->name('shows.import');
     Route::get('/shows/export', [ShowController::class, 'export'])->name('shows.export');
 });
+

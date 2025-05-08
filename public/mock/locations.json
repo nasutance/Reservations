@@ -1,0 +1,47 @@
+[
+    {
+      "id": 1,
+      "slug": "theatre-national",
+      "designation": "Théâtre National Wallonie-Bruxelles",
+      "address": "Boulevard Émile Jacqmain 111-115",
+      "locality_postal_code": "1000",
+      "website": "https://www.theatrenational.be",
+      "phone": "02/203.41.55"
+    },
+    {
+      "id": 2,
+      "slug": "opera-liege",
+      "designation": "Opéra Royal de Wallonie",
+      "address": "Place de l’Opéra",
+      "locality_postal_code": "4000",
+      "website": "https://www.operaliege.be",
+      "phone": "04/221.47.22"
+    },
+    {
+      "id": 3,
+      "slug": "arsenal-namur",
+      "designation": "Le Théâtre de l’Arsenal",
+      "address": "Rue Bruno 11",
+      "locality_postal_code": "5000",
+      "website": "https://www.theatredelarsenal.be",
+      "phone": "081/22.34.56"
+    },
+    {
+      "id": 4,
+      "slug": "pba-charleroi",
+      "designation": "Palais des Beaux-Arts de Charleroi",
+      "address": "Place du Manège",
+      "locality_postal_code": "6000",
+      "website": "https://www.pba.be",
+      "phone": "071/31.12.13"
+    },
+    {
+      "id": 5,
+      "slug": "ntgent",
+      "designation": "NTGent",
+      "address": "Sint-Baafsplein 17",
+      "locality_postal_code": "9000",
+      "website": "https://www.ntgent.be",
+      "phone": "09/225.01.01"
+    }
+  ]

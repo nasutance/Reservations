@@ -5,123 +5,109 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Artist;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ArtistController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-     public function index()
-     {
-     $artists = Artist::all()->map(function ($artist) {
-       return $this->formatArtistWithLinks($artist);
-     });
+    use AuthorizesRequests;
 
-     return response()->json($artists, 200, [], JSON_UNESCAPED_UNICODE);
-     }
+    public function index()
+    {
+        $this->authorize('viewAny', Artist::class);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-     public function store(Request $request)
-     {
-       if (!Gate::allows('update-artist')) {
-         return response()->json(["error"=>"Action non autorisée."],403);
-       }
+        $artists = Artist::all()->map(function ($artist) {
+            return $this->formatArtistWithLinks($artist);
+        });
 
-         $validated = $request->validate([
-             'firstname' => 'required|max:60',
-             'lastname' => 'required|max:60',
-         ]);
+        return response()->json($artists, 200, [], JSON_UNESCAPED_UNICODE);
+    }
 
-         $artist = Artist::create($validated);
+    public function store(Request $request)
+    {
+        $this->authorize('create', Artist::class);
 
-         return response()->json($this->formatArtistWithLinks($artist), 201);
-       }
+        $validated = $request->validate([
+            'firstname' => 'required|max:60',
+            'lastname' => 'required|max:60',
+        ]);
 
+        $artist = Artist::create($validated);
 
-    /**
-     * Display the specified resource.
-     */
-     public function show($id)
-     {
-         $artist = Artist::find($id);
+        return response()->json($this->formatArtistWithLinks($artist), 201);
+    }
 
-         if (!$artist) {
-             return response()->json(['message' => 'Artist not found'], 404);
-         }
-         return response()->json($this->formatArtistWithLinks($artist), 200);
-       }
+    public function show($id)
+    {
+        $artist = Artist::find($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-     public function update(Request $request, $id)
-     {
-       if (!Gate::allows('update-artist')) {
-         return response()->json(["error"=>"Action non autorisée."],403);
-       }
-         $artist = Artist::find($id);
+        if (!$artist) {
+            return response()->json(['message' => 'Artist not found'], 404);
+        }
 
-         if (!$artist) {
-             return response()->json(['message' => 'Artist not found'], 404);
-         }
+        $this->authorize('view', $artist);
 
-         $validated = $request->validate([
-             'firstname' => 'sometimes|string|max:60',
-             'lastname' => 'sometimes|string|max:60',
-         ]);
+        return response()->json($this->formatArtistWithLinks($artist), 200);
+    }
 
-         $artist->update($validated);
+    public function update(Request $request, $id)
+    {
+        $artist = Artist::find($id);
 
-         return response()->json($this->formatArtistWithLinks($artist), 200);
-       }
+        if (!$artist) {
+            return response()->json(['message' => 'Artist not found'], 404);
+        }
 
+        $this->authorize('update', $artist);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-     public function destroy($id)
-     {
-       if (!Gate::allows('delete-artist')) {
-         return response()->json(["error"=>"Action non autorisée."],403);
-       }
-         $artist = Artist::find($id);
+        $validated = $request->validate([
+            'firstname' => 'sometimes|string|max:60',
+            'lastname' => 'sometimes|string|max:60',
+        ]);
 
-         if (!$artist) {
-             return response()->json(['message' => 'Artist not found'], 404);
-         }
+        $artist->update($validated);
 
-         $artist->delete();
+        return response()->json($this->formatArtistWithLinks($artist), 200);
+    }
 
-         return response()->json(['message' => 'Artist deleted'], 200);
-     }
+    public function destroy($id)
+    {
+        $artist = Artist::find($id);
+
+        if (!$artist) {
+            return response()->json(['message' => 'Artist not found'], 404);
+        }
+
+        $this->authorize('delete', $artist);
+
+        $artist->delete();
+
+        return response()->json(['message' => 'Artist deleted'], 200);
+    }
 
      // Méthode pour formater un artiste avec des liens hypermédia
      // Facilite la découverte des actions disponibles sur une ressource.
      // Permet aux clients de naviguer dans l’API dynamiquement sans devoir coder en dur les URLs.
      // Encourage une approche RESTful plus complète.
 
-     private function formatArtistWithLinks(Artist $artist)
-     {
-       return [
-         'id' => $artist->id,
-         'firstname' => $artist->firstname,
-         'lastname' => $artist->lastname,
-         '_links' => [ // Tableau de liens HATEOAS
-           'self' => [ // Donne l’URL permettant de récupérer les détails de cet artiste (GET /artists/{id})
-             'href' => route('artists.show', ['artist' => $artist->id]),
-           ],
-           'update' => [ // Fournit l’URL pour mettre à jour cet artiste (PUT /artists/{id})
-             'href' => route('artists.update', ['artist' => $artist->id]),
-             'method' => 'PUT',
-           ],
-           'delete' => [ // Fournit l’URL pour supprimer cet artiste (DELETE /artists/{id})
-             'href' => route('artists.destroy', ['artist' => $artist->id]),
-             'method' => 'DELETE',
-           ],
-         ],
-       ];
-     }
+    private function formatArtistWithLinks(Artist $artist)
+    {
+        return [
+            'id' => $artist->id,
+            'firstname' => $artist->firstname,
+            'lastname' => $artist->lastname,
+            '_links' => [
+                'self' => [
+                    'href' => route('artists.show', ['artist' => $artist->id]),
+                ],
+                'update' => [
+                    'href' => route('artists.update', ['artist' => $artist->id]),
+                    'method' => 'PUT',
+                ],
+                'delete' => [
+                    'href' => route('artists.destroy', ['artist' => $artist->id]),
+                    'method' => 'DELETE',
+                ],
+            ],
+        ];
+    }
 }

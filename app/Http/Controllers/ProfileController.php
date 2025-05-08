@@ -23,7 +23,8 @@ class ProfileController extends Controller
              'status' => session('status'),
              'auth' => [
                  'user' => [
-                     'name' => $request->user()->name,
+                     'firstname' => $request->user()->firstname,
+                     'lastname' => $request->user()->lastname,
                      'email' => $request->user()->email,
                      'login' => $request->user()->login, // Ajouter login
                      'langue' => $request->user()->langue, // Ajouter langue

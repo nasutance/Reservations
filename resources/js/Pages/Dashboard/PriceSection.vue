@@ -47,22 +47,39 @@
       </template>
 
       <template #actions="{ row }">
-        <div class="flex gap-2 items-center">
-          <button @click="togglePriceEdit(row.id)" class="text-sm text-blue-600">
-            {{ isEditingPrice(row.id) ? 'Annuler' : '✏️ Modifier' }}
-          </button>
-          <button v-if="isEditingPrice(row.id)" @click="savePrice(row)" class="text-sm text-green-600">
-            💾 Enregistrer
-          </button>
-          <button
-            v-if="isEditingPrice(row.id) && !row.isNew"
-            @click="deletePrice(row.id)"
-            class="text-sm text-red-500 ml-2"
-          >
-            ❌
-          </button>
-        </div>
-      </template>
+  <div class="flex flex-col gap-2 items-start mt-1">
+    <button
+      v-if="!isEditingPrice(row.id)"
+      class="text-blue-600 text-sm hover:underline"
+      @click="togglePriceEdit(row.id)"
+    >
+      ✏️ Modifier
+    </button>
+
+    <template v-else>
+      <button
+        class="text-green-600 text-sm hover:underline"
+        @click="savePrice(row)"
+      >
+        💾 Enregistrer
+      </button>
+      <button
+        class="text-gray-600 text-sm hover:underline"
+        @click="togglePriceEdit(row.id)"
+      >
+        🔄 Annuler
+      </button>
+      <button
+        v-if="!row.isNew"
+        class="text-red-600 text-sm hover:underline"
+        @click="deletePrice(row.id)"
+      >
+        🗑️ Supprimer
+      </button>
+    </template>
+  </div>
+</template>
+
     </DataTable>
   </div>
 </template>

@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Feed\Feedable;
+use Spatie\Feed\FeedItem;
+use Illuminate\Support\Carbon;
 
-class Representation extends Model
+class Representation extends Model implements Feedable
+
 {
     use HasFactory;
 
@@ -62,6 +66,31 @@ class Representation extends Model
 {
     return $this->hasMany(Price::class);
 }
+
+
+public static function getFeedItems(): array
+{
+    return self::where('schedule', '>', now())
+        ->orderBy('schedule')
+        ->with('show', 'location')
+        ->take(20)
+        ->get()
+        ->all();
+}
+
+
+    public function toFeedItem(): FeedItem
+    {
+        return FeedItem::create([
+            'id' => route('representations.show', $this),
+            'title' => "{$this->show->title} à {$this->location->designation}",
+            'summary' => "Le {$this->schedule->format('d/m/Y à H\hi')} à {$this->location->designation}",
+            'updated' => new \Illuminate\Support\Carbon($this->schedule),
+            'link' => route('representations.show', $this),
+            'authorName' => '',
+        ]);
+    }
+
 
 
 }

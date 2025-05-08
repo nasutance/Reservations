@@ -1,141 +1,184 @@
 <template>
   <div>
     <h3 class="text-xl font-semibold mb-4">Liste des artistes</h3>
-    <Button @click="openCreateModal('artist')">Créer artiste</Button>
+    <button @click="addNewArtistRow">➕ Ajouter un artiste</button>
 
-    <DataTable :headers="headersArtists" :fields="fieldsArtists" :rows="formattedArtists">
-      <!-- Champ editable : fullname -->
+    <DataTable :headers="headers" :fields="fields" :rows="localArtists">
       <template #fullname="{ row }">
         <div v-if="isEditing(row.id)">
           <input v-model="row.firstname" placeholder="Prénom" class="border px-2 py-1 rounded mr-1" />
           <input v-model="row.lastname" placeholder="Nom" class="border px-2 py-1 rounded" />
         </div>
-        <span v-else>{{ row.fullname }}</span>
+        <span v-else>{{ row.firstname }} {{ row.lastname }}</span>
       </template>
 
-      <!-- Champ editable : types -->
-      <template #typesText="{ row }">
+      <template #types="{ row }">
         <div v-if="isEditing(row.id)">
           <label v-for="type in types" :key="type.id" class="block text-sm">
             <input type="checkbox" :value="type.id" v-model="row.selectedTypeIds" class="mr-1" />
             {{ type.type }}
           </label>
         </div>
-        <span v-else>{{ row.typesText }}</span>
+        <span v-else>
+          {{ getTypeLabels(row.selectedTypeIds).join(', ') || '—' }}
+        </span>
       </template>
 
-      <!-- Champ editable : shows par type -->
-      <template #showsText="{ row }">
+      <template #shows="{ row }">
         <div v-if="isEditing(row.id)">
           <div v-for="typeId in row.selectedTypeIds" :key="typeId" class="mb-2">
-            <strong class="text-sm block">{{ getTypeLabel(typeId) }}</strong>
-            <select v-model="row.selectedShowTypeMap[typeId]" multiple class="w-full border rounded px-2 py-1">
-              <option v-for="show in shows" :key="show.id" :value="show.id">
+            <strong class="text-sm block mb-1">{{ getTypeLabel(typeId) }}</strong>
+            <div class="grid grid-cols-2 gap-1">
+              <label v-for="show in shows" :key="`type-${typeId}-show-${show.id}`" class="text-sm">
+                <input
+                  type="checkbox"
+                  :value="show.id"
+                  v-model="row.selectedShowTypeMap[typeId]"
+                  class="mr-1"
+                />
                 {{ show.title }}
-              </option>
-            </select>
+              </label>
+            </div>
           </div>
         </div>
-        <span v-else>{{ row.showsText }}</span>
+        <span v-else>
+          <span v-if="row.showsText">{{ row.showsText }}</span>
+          <span v-else>—</span>
+        </span>
       </template>
 
-      <!-- Actions -->
       <template #actions="{ row }">
-        <div class="flex gap-2 items-center">
-          <button @click="toggleEdit(row.id)" class="text-sm text-blue-600">
-            {{ isEditing(row.id) ? 'Annuler' : '✏️ Modifier' }}
-          </button>
+  <div class="flex flex-col gap-2 items-start mt-1">
+    <button
+      v-if="!isEditing(row.id)"
+      class="text-blue-600 text-sm hover:underline"
+      @click="toggleEdit(row.id)"
+    >
+      ✏️ Modifier
+    </button>
 
-          <button
-            v-if="isEditing(row.id)"
-            @click="saveArtist(row)"
-            class="text-sm text-green-600"
-          >
-            💾 Enregistrer
-          </button>
-
-          <button
-            v-if="isEditing(row.id)"
-            @click="deleteArtist(row.id)"
-            class="text-sm text-red-500 ml-2"
-            title="Supprimer l'artiste"
-          >
-            ❌
-          </button>
-        </div>
-      </template>
-    </DataTable>
-
-    <!-- Modal création -->
-    <CreateModal
-      v-if="showModal"
-      :entity="selectedEntity"
-      :fields="fields"
-      :submit-url="submitUrl"
-      @close="closeModal"
-    />
+    <template v-else>
+      <button
+        class="text-green-600 text-sm hover:underline"
+        @click="saveArtist(row)"
+      >
+        💾 Enregistrer
+      </button>
+      <button
+        class="text-gray-600 text-sm hover:underline"
+        @click="toggleEdit(row.id)"
+      >
+        🔄 Annuler
+      </button>
+      <button
+        v-if="!row.isNew"
+        class="text-red-600 text-sm hover:underline"
+        @click="deleteArtist(row.id)"
+      >
+        🗑️ Supprimer
+      </button>
+    </template>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+    </DataTable>
+  </div>
+</template><script setup>
+
+import { ref, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
-
-import Button from '@/Components/Button.vue'
 import DataTable from '@/Components/DataTable.vue'
-import CreateModal from '@/Components/CreateModal.vue'
-import { formSchemas } from '@/utils/formSchemas'
-import useFormattedArtists from '@/utils/useFormattedArtists'
 
-const { formattedArtists } = useFormattedArtists()
+const page = usePage()
+const types = ref(page.props.types ?? [])
+const shows = ref(page.props.shows ?? [])
+const artists = ref(page.props.artists ?? [])
+const artistTypes = ref(page.props.artistTypes ?? [])
 
-const types = usePage().props.types ?? []
-const shows = usePage().props.shows ?? []
+const localArtists = ref([])
+const editingIds = ref(new Set())
 
-function getTypeLabel(id) {
-  return types.find(t => t.id === id)?.type ?? `Type ${id}`
+watch(() => page.props.artists, hydrateLocalArtists)
+watch(() => page.props.artistTypes, hydrateLocalArtists)
+
+hydrateLocalArtists()
+
+function hydrateLocalArtists() {
+  const rawArtists = page.props.artists ?? []
+  const rawArtistTypes = page.props.artistTypes ?? []
+
+  localArtists.value = rawArtists.map(artist => {
+    const related = rawArtistTypes.filter(at => at.artist_id === artist.id)
+    const typeIds = related.map(at => at.type_id)
+    const showMap = Object.fromEntries(
+      related.map(at => [
+        at.type_id,
+        at.shows?.map(s => s.id) ?? []
+      ])
+    )
+    const showsTextMap = {}
+    for (const at of related) {
+      const type = at.type?.type
+      for (const show of at.shows ?? []) {
+        if (!showsTextMap[show.title]) showsTextMap[show.title] = []
+        showsTextMap[show.title].push(type)
+      }
+    }
+    const showsText = Object.entries(showsTextMap)
+      .map(([title, tps]) => `${title} (${tps.join(', ')})`)
+      .join(' / ')
+    return {
+      id: artist.id,
+      firstname: artist.firstname,
+      lastname: artist.lastname,
+      selectedTypeIds: typeIds,
+      selectedShowTypeMap: showMap,
+      showsText
+    }
+  })
 }
-
-const headersArtists = ['Artiste', 'Types', 'Spectacles', 'Actions']
-const fieldsArtists = ['fullname', 'typesText', 'showsText', 'actions']
-
-const showModal = ref(false)
-const selectedEntity = ref(null)
-const fields = ref([])
-const submitUrl = ref('')
-
-function openCreateModal(entity) {
-  selectedEntity.value = entity
-  fields.value = formSchemas[entity]
-  submitUrl.value = entity === 'artist' ? '/artist' : ''
-  showModal.value = true
-}
-
-function closeModal() {
-  showModal.value = false
-  router.reload({ preserveScroll: true })
-}
-
-const editingArtistIds = ref(new Set())
 
 function isEditing(id) {
-  return editingArtistIds.value.has(id)
+  return editingIds.value.has(id)
 }
 
 function toggleEdit(id) {
-  if (isEditing(id)) editingArtistIds.value.delete(id)
-  else editingArtistIds.value.add(id)
+  if (isEditing(id)) editingIds.value.delete(id)
+  else editingIds.value.add(id)
+}
+
+function addNewArtistRow() {
+  const newRow = {
+    id: `new-${Date.now()}`,
+    firstname: '',
+    lastname: '',
+    selectedTypeIds: [],
+    selectedShowTypeMap: {},
+    isNew: true
+  }
+  localArtists.value.unshift(newRow)
+  editingIds.value.add(newRow.id)
+}
+
+function getTypeLabel(id) {
+  return types.value.find(t => t.id === id)?.type ?? `Type ${id}`
+}
+
+function getTypeLabels(ids) {
+  return ids.map(getTypeLabel)
 }
 
 async function saveArtist(row) {
-  await router.put(`/artist/${row.id}`, {
+  const method = row.isNew ? 'post' : 'put'
+  const url = row.isNew ? '/artist' : `/artist/${row.id}`
+  await router[method](url, {
     firstname: row.firstname,
     lastname: row.lastname,
     types: row.selectedTypeIds,
     shows: row.selectedShowTypeMap,
   }, {
     onSuccess: () => {
-      editingArtistIds.value.delete(row.id)
+      editingIds.value.delete(row.id)
       router.reload({ preserveScroll: true })
     }
   })
@@ -143,13 +186,15 @@ async function saveArtist(row) {
 
 function deleteArtist(id) {
   if (!confirm('Supprimer définitivement cet artiste ?')) return
-
   router.delete(`/artist/${id}`, {
     preserveScroll: true,
     onSuccess: () => {
-      editingArtistIds.value.delete(id)
+      editingIds.value.delete(id)
       router.reload({ preserveScroll: true })
     }
   })
 }
+
+const headers = ['Artiste', 'Types', 'Spectacles', 'Actions']
+const fields = ['fullname', 'types', 'shows', 'actions']
 </script>

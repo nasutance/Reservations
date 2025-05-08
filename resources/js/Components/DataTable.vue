@@ -1,6 +1,6 @@
 <template>
   <div class="w-full flex justify-center">
-    <table class="min-w-[1300px] text-sm text-left text-gray-700">
+    <table class="min-w-[1800px] text-sm text-left text-gray-700">
       <DataTableHead
         :headers="headers"
         :fields="fields"

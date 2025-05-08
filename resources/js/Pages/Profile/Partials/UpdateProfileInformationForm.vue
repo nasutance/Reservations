@@ -92,6 +92,8 @@ const form = useForm({
                     <option value="fr">Français</option>
                     <option value="en">English</option>
                     <option value="nl">Nederlands</option>
+                    <option value="it">Italiano</option>
+                    <option value="de">Deutsch</option>
                 </select>
                 <InputError class="mt-2" :message="form.errors.langue" />
             </div>

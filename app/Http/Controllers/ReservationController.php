@@ -92,7 +92,10 @@ class ReservationController extends Controller
 
         if ($user->can('viewAny', Reservation::class)) {
             $query = Reservation::with(['representations.show', 'user:id,firstname,lastname,email']);
+        } else {
+            $query = $user->reservations()->with(['representations.show']);
         }
+        
 
         return Inertia::render('Dashboard/Dashboard', [
             'reservations' => $query->get()
@@ -102,13 +105,14 @@ class ReservationController extends Controller
     public function show(Reservation $reservation)
     {
         $this->authorize('view', $reservation);
-
+    
         $reservation->load(['representations.show']);
-
-        return Inertia::render('Reservation/Show', [
-            'reservation' => $reservation
+    
+        return Inertia::render('Dashboard/Dashboard', [
+            'highlightedReservation' => $reservation,
         ]);
     }
+    
 
     public function destroy(Reservation $reservation)
     {
@@ -259,7 +263,21 @@ class ReservationController extends Controller
             'quantity' => 0,
         ]);
 
-        return Inertia::location('/dashboard');
+        return redirect()->back();
+
     }
+
+
+    public function destroyLine(Reservation $reservation, Representation $representation, $priceId)
+    {
+        DB::table('representation_reservation')
+            ->where('reservation_id', $reservation->id)
+            ->where('representation_id', $representation->id)
+            ->where('price_id', $priceId)
+            ->delete();
+    
+        return back();
+    }
+    
 
 }

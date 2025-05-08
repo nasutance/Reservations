@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation};
+use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation, Location};
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,8 @@ class DashboardController extends Controller
                 'reservations' => Reservation::with(['representations.show', 'representations.location', 'user'])->get(),
                 'users' => User::with('roles')->get(),
                 'shows' => Show::all(),
-                'representations' => Representation::with('location')->get(),
+                'representations' => Representation::with('location','show')->get(),
+                'locations' => Location::all(),
                 'artists' => Artist::all(),
                 'artistTypes' => ArtistType::with(['type', 'shows'])->get(),
                 'types' => Type::all(),

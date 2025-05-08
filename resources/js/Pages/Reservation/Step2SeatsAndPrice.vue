@@ -18,7 +18,7 @@
             type="number"
             min="0"
             class="w-16 border rounded px-2 py-1 text-right"
-            v-model.number="quantities[price.id]"
+            v-model.number="quantitiesObj[price.id]"
           />
           <span>place(s)</span>
         </div>
@@ -46,21 +46,21 @@ const props = defineProps({
 
 const emit = defineEmits(['next', 'previous'])
 
-const quantities = ref({})
+const quantitiesObj = ref({})
 
 onMounted(() => {
   props.show.prices.forEach(price => {
-    quantities.value[price.id] = props.form.quantities?.[price.id] ?? 0
+    quantitiesObj.value[price.id] = props.form.quantities?.find(q => q.price_id === price.id)?.quantity ?? 0
   })
 })
 
 const totalSeats = computed(() =>
-  Object.values(quantities.value).reduce((acc, val) => acc + (parseInt(val) || 0), 0)
+  Object.values(quantitiesObj.value).reduce((acc, val) => acc + (parseInt(val) || 0), 0)
 )
 
 const totalPrice = computed(() =>
   props.show.prices.reduce((acc, price) => {
-    const qty = quantities.value[price.id] || 0
+    const qty = quantitiesObj.value[price.id] || 0
     return acc + qty * parseFloat(price.price)
   }, 0)
 )
@@ -69,7 +69,7 @@ function validateStep() {
   const result = props.show.prices
     .map(price => ({
       price_id: price.id,
-      quantity: quantities.value[price.id] || 0
+      quantity: quantitiesObj.value[price.id] || 0,
     }))
     .filter(entry => entry.quantity > 0)
 

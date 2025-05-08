@@ -9,7 +9,7 @@ class ArtistPolicy
 {
     public function viewAny(User $user)
     {
-        return true; // Admins + membres + visiteurs
+        return true; // Public, membres, affiliés, admins → tout le monde
     }
 
     public function view(User $user, Artist $artist)
@@ -19,16 +19,16 @@ class ArtistPolicy
 
     public function create(User $user)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin'); // Uniquement admin
     }
 
     public function update(User $user, Artist $artist)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin'); // Uniquement admin
     }
 
     public function delete(User $user, Artist $artist)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin'); // Uniquement admin
     }
 }
