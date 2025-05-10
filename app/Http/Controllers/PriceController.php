@@ -11,13 +11,14 @@ class PriceController extends Controller
     /**
      * Display a listing of the resource.
      */
-     public function index()
-     {
-         $prices = Price::all();
-         return view('price.index', [
-             'prices' => $prices,
-         ]);
-     }
+    public function index()
+    {
+        return Inertia::render('AdminDashboard', [
+            'prices' => Price::all(),
+            // autres props si nécessaire
+        ]);
+    }
+    
 
 
     /**
@@ -43,7 +44,8 @@ class PriceController extends Controller
     
         Price::create($validated);
     
-        return redirect()->back()->with('success', 'Prix créé.');
+        return Inertia::location('/dashboard');
+
     }
     
     /**
@@ -81,6 +83,7 @@ class PriceController extends Controller
         $price->update($validated);
     
         return Inertia::location('/dashboard');
+
     }
     
 
@@ -88,8 +91,11 @@ class PriceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Price $price)
     {
-        //
+        $price->delete();
+    
+        return Inertia::location('/dashboard');
+
     }
 }

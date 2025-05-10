@@ -267,7 +267,21 @@ function addRepresentationLine(row) {
   router.post(`/reservation/${row.id}/add-line`, {
     price_id: available.id
   }, {
-    preserveScroll: true
+    preserveScroll: true,
+    onSuccess: () => {
+      // Simuler ajout d'une nouvelle ligne
+      row.representations.push({
+        id: Date.now(), // valeur temporaire, unique
+        show_id: row.representations[0]?.show_id ?? null,
+        pivot: {
+          id: Date.now(), // identifiant factice temporaire
+          quantity: 0,
+          price_id: available.id,
+          original_price_id: available.id,
+          original_quantity: 0
+        }
+      })
+    }
   })
 }
 
@@ -275,9 +289,18 @@ function deleteRepresentationLine(resaId, representationId, priceId) {
   if (!confirm('Supprimer cette ligne de réservation ?')) return
 
   router.delete(`/reservation/${resaId}/line/${representationId}/${priceId}`, {
-    preserveScroll: true
+    preserveScroll: true,
+    onSuccess: () => {
+      const resa = localReservations.value.find(r => r.id === resaId)
+      if (!resa) return
+
+      resa.representations = resa.representations.filter(
+        rep => !(rep.id === representationId && rep.pivot.price_id === priceId)
+      )
+    }
   })
 }
+
 
 const headersResa = ['#', 'Utilisateur', 'Spectacle', 'Date', 'Lieu', 'Statut', 'Détails', 'Actions']
 const fieldsResa = ['id', 'user', 'showTitle', 'schedule', 'location', 'status', 'detail', 'actions']

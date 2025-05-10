@@ -95,7 +95,8 @@ class ShowController extends Controller
 
     fclose($handle);
 
-    return back()->with('success', 'Importation CSV réussie.');
+    return Inertia::location('/dashboard');
+
 }
 
     public function index(Request $request)
@@ -184,7 +185,7 @@ class ShowController extends Controller
     public function update(Request $request, Show $show)
     {
         $this->authorize('update', $show);
-
+    
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -193,25 +194,25 @@ class ShowController extends Controller
             'price_ids' => 'nullable|array',
             'price_ids.*' => 'exists:prices,id',
         ]);
-
+    
         $show->update([
             'title' => $validated['title'],
             'description' => $validated['description'],
             'duration' => $validated['duration'],
             'bookable' => (bool) $validated['bookable'],
         ]);
-
+    
         $show->prices()->sync($validated['price_ids'] ?? []);
-
-        return redirect()->back()->with('success', 'Spectacle mis à jour.');
+    
+        return Inertia::location('/dashboard');
     }
-
+    
     public function destroy(Show $show)
     {
         $this->authorize('delete', $show);
-
         $show->delete();
-
-        return redirect()->back()->with('success', 'Spectacle supprimé.');
+    
+        return Inertia::location('/dashboard');
     }
+    
 }

@@ -19,7 +19,7 @@ use App\Http\Controllers\{
     UserController
 };
 
-Route::get('/rss', [FeedController::class, 'index']);
+Route::feeds();
 
 // Page d’accueil
 Route::get('/', fn () => Inertia::render('Home'));

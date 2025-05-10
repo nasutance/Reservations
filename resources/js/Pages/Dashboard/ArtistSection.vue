@@ -33,7 +33,7 @@
                 <input
                   type="checkbox"
                   :value="show.id"
-                  v-model="row.selectedShowTypeMap[typeId]"
+                  :v-model="getShowBinding(row, typeId)"
                   class="mr-1"
                 />
                 {{ show.title }}
@@ -48,51 +48,49 @@
       </template>
 
       <template #actions="{ row }">
-  <div class="flex flex-col gap-2 items-start mt-1">
-    <button
-      v-if="!isEditing(row.id)"
-      class="text-blue-600 text-sm hover:underline"
-      @click="toggleEdit(row.id)"
-    >
-      ✏️ Modifier
-    </button>
-
-    <template v-else>
-      <button
-        class="text-green-600 text-sm hover:underline"
-        @click="saveArtist(row)"
-      >
-        💾 Enregistrer
-      </button>
-      <button
-        class="text-gray-600 text-sm hover:underline"
-        @click="toggleEdit(row.id)"
-      >
-        🔄 Annuler
-      </button>
-      <button
-        v-if="!row.isNew"
-        class="text-red-600 text-sm hover:underline"
-        @click="deleteArtist(row.id)"
-      >
-        🗑️ Supprimer
-      </button>
-    </template>
+        <div class="flex flex-col gap-2 items-start mt-1">
+          <button
+            v-if="!isEditing(row.id)"
+            class="text-blue-600 text-sm hover:underline"
+            @click="toggleEdit(row.id)"
+          >
+            ✏️ Modifier
+          </button>
+          <template v-else>
+            <button
+              class="text-green-600 text-sm hover:underline"
+              @click="saveArtist(row)"
+            >
+              💾 Enregistrer
+            </button>
+            <button
+              class="text-gray-600 text-sm hover:underline"
+              @click="toggleEdit(row.id)"
+            >
+              🔄 Annuler
+            </button>
+            <button
+              v-if="!row.isNew"
+              class="text-red-600 text-sm hover:underline"
+              @click="deleteArtist(row.id)"
+            >
+              🗑️ Supprimer
+            </button>
+          </template>
+        </div>
+      </template>
+    </DataTable>
   </div>
 </template>
 
-    </DataTable>
-  </div>
-</template><script setup>
-
-import { ref, watch } from 'vue'
+<script setup>
+import { ref, watch, computed } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import DataTable from '@/Components/DataTable.vue'
 
 const page = usePage()
 const types = ref(page.props.types ?? [])
 const shows = ref(page.props.shows ?? [])
-const artists = ref(page.props.artists ?? [])
 const artistTypes = ref(page.props.artistTypes ?? [])
 
 const localArtists = ref([])
@@ -168,9 +166,31 @@ function getTypeLabels(ids) {
   return ids.map(getTypeLabel)
 }
 
+// ✅ Correction : binding propre avec computed
+function getShowBinding(row, typeId) {
+  return computed({
+    get() {
+      if (!Array.isArray(row.selectedShowTypeMap[typeId])) {
+        row.selectedShowTypeMap[typeId] = []
+      }
+      return row.selectedShowTypeMap[typeId]
+    },
+    set(newValue) {
+      row.selectedShowTypeMap[typeId] = newValue
+    }
+  })
+}
+
 async function saveArtist(row) {
   const method = row.isNew ? 'post' : 'put'
   const url = row.isNew ? '/artist' : `/artist/${row.id}`
+
+  for (const typeId of row.selectedTypeIds) {
+    if (!Array.isArray(row.selectedShowTypeMap[typeId])) {
+      row.selectedShowTypeMap[typeId] = []
+    }
+  }
+
   await router[method](url, {
     firstname: row.firstname,
     lastname: row.lastname,

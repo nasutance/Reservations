@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class Representation extends Model implements Feedable
 
@@ -26,6 +27,10 @@ class Representation extends Model implements Feedable
         'location_id',
     ];
 
+    protected $casts = [
+        'schedule' => 'datetime',
+    ];
+    
     /**
      * The table associated with the model.
      *
@@ -68,14 +73,14 @@ class Representation extends Model implements Feedable
 }
 
 
-public static function getFeedItems(): array
+public static function getFeedItems(): \Illuminate\Support\Collection
 {
     return self::where('schedule', '>', now())
-        ->orderBy('schedule')
-        ->with('show', 'location')
-        ->take(20)
-        ->get()
-        ->all();
+    ->orderBy('schedule')
+    ->with('show', 'location')
+    ->take(20)
+    ->get(); // ✅ retourne une Collection
+
 }
 
 

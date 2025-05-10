@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Artist;
+use App\Models\ArtistType;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
@@ -33,17 +34,34 @@ class ArtistController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Artist::class);
-
+    
         $validated = $request->validate([
             'firstname' => 'required|max:60',
             'lastname' => 'required|max:60',
+            'types' => 'array',
+            'types.*' => 'exists:types,id',
+            'shows' => 'array',
+            'shows.*' => 'array',
+            'shows.*.*' => 'exists:shows,id',
         ]);
-
-        Artist::create($validated);
-
-        return back();
-
+    
+        $artist = Artist::create([
+            'firstname' => $validated['firstname'],
+            'lastname' => $validated['lastname'],
+        ]);
+    
+        foreach ($validated['types'] as $typeId) {
+            $artistType = $artist->artistTypes()->create([
+                'type_id' => $typeId,
+            ]);
+    
+            $showsForThisType = $validated['shows'][$typeId] ?? [];
+            $artistType->shows()->sync($showsForThisType);
+        }
+    
+        return Inertia::location('/dashboard');
     }
+    
 
     public function show($id)
     {
