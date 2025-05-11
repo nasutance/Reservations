@@ -1,13 +1,16 @@
 <template>
+  <!-- Étape 5 : résumé des choix et confirmation finale de la réservation -->
   <div>
     <h2 class="text-xl font-semibold mb-6">Étape 5 : Confirmation de votre réservation</h2>
 
+    <!-- Récapitulatif des données saisies par l'utilisateur -->
     <div class="mb-6 space-y-4 text-gray-800">
       <p><strong>Spectacle :</strong> {{ show.title }}</p>
       <p><strong>Représentation :</strong>
         {{ formatDate(selectedRepresentation.schedule) }} – {{ selectedRepresentation.location?.designation || 'Lieu inconnu' }}
       </p>
 
+      <!-- Liste des tarifs sélectionnés avec quantité et sous-total -->
       <div>
         <strong>Tarifs sélectionnés :</strong>
         <ul class="mt-2 space-y-2">
@@ -21,15 +24,18 @@
       <p><strong>Livraison :</strong> {{ deliveryLabels[form.delivery_method] || 'N/A' }}</p>
       <p><strong>Paiement :</strong> {{ paymentLabels[form.payment_method] || 'N/A' }}</p>
 
+      <!-- Affichage du total général -->
       <p class="text-right text-lg font-semibold mt-4">
         Total estimé : {{ totalPrice.toFixed(2) }} €
       </p>
     </div>
 
+    <!-- Boutons pour confirmer ou revenir à l'étape précédente -->
     <div class="flex justify-between items-center mt-8">
       <button @click="$emit('previous')" class="btn-secondary">Précédent</button>
 
       <div>
+        <!-- Affichage du bouton de confirmation ou des instructions de paiement -->
         <button
           v-if="!reservationCreated"
           class="btn"
@@ -50,38 +56,46 @@
 </template>
 
 <script setup>
+// Importation des outils Vue et des dépendances
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { Inertia } from '@inertiajs/inertia'
 
+// Récupération des props du composant parent
 const props = defineProps({
   form: Object,
   show: Object,
   paypalClientId: String,
 })
 
+// Références réactives pour suivre l'état de la réservation
 const reservationId = ref(null)
 const reservationCreated = ref(false)
 
+// Recherche de la représentation choisie à partir de l'ID
 const selectedRepresentation = computed(() =>
   props.show.representations.find(r => r.id === props.form.representation_id) || {}
 )
 
+// Fonction utilitaire : récupérer le prix d'un tarif via son ID
 function getPrice(priceId) {
   const p = props.show.prices.find(p => p.id === priceId)
   return p ? parseFloat(p.price) : 0
 }
 
+// Fonction utilitaire : récupérer le libellé d'un tarif
 function priceLabel(priceId) {
   const p = props.show.prices.find(p => p.id === priceId)
   return p ? p.type : 'Tarif inconnu'
 }
 
+// Calcul dynamique du total à payer
 const totalPrice = computed(() =>
   props.form.quantities.reduce((acc, item) =>
     acc + item.quantity * getPrice(item.price_id), 0)
 )
 
+// Dictionnaires de correspondance pour affichage user-friendly
 const deliveryLabels = {
   email: 'Envoi par email',
   download: 'Téléchargement PDF',
@@ -94,6 +108,7 @@ const paymentLabels = {
   on_site: 'Paiement sur place',
 }
 
+// Formate la date/heure d'une représentation en format local FR
 function formatDate(iso) {
   return new Date(iso).toLocaleString('fr-BE', {
     day: '2-digit',
@@ -104,6 +119,7 @@ function formatDate(iso) {
   })
 }
 
+// Envoie les données de réservation au backend
 function confirmReservation() {
   axios.post('/reservation', {
     representation_id: props.form.representation_id,
@@ -122,6 +138,7 @@ function confirmReservation() {
   })
 }
 
+// Charge le script PayPal uniquement si nécessaire
 function loadPaypal() {
   if (!window.paypal && !document.getElementById('paypal-sdk')) {
     const script = document.createElement('script')
@@ -134,6 +151,7 @@ function loadPaypal() {
   }
 }
 
+// Initialise les boutons PayPal avec les callbacks de paiement
 function renderPaypal() {
   window.paypal.Buttons({
     createOrder: (data, actions) => {
@@ -147,15 +165,15 @@ function renderPaypal() {
     },
     onApprove: (data, actions) => {
       return actions.order.capture().then(() => {
-      axios.patch(`/reservation/${reservationId.value}`, {
-        status: 'payée',
-      })
-      .then(() => {
-        Inertia.visit('/merci')
-      })
-      .catch((err) => {
-        console.error("Erreur PATCH statut :", err)
-      })
+        axios.patch(`/reservation/${reservationId.value}`, {
+          status: 'payée',
+        })
+        .then(() => {
+          Inertia.visit(`/merci?reservationId=${reservationId.value}`)
+        })
+        .catch((err) => {
+          console.error("Erreur PATCH statut :", err)
+        })
       })
     }
   }).render('#paypal-button-container')
@@ -163,6 +181,7 @@ function renderPaypal() {
 </script>
 
 <style scoped>
+/* Style du bouton principal (valider la réservation) */
 .btn {
   background-color: #4f46e5;
   color: white;
@@ -170,6 +189,8 @@ function renderPaypal() {
   border-radius: 0.375rem;
   font-weight: 600;
 }
+
+/* Style du bouton secondaire (retour) */
 .btn-secondary {
   background-color: #e5e7eb;
   color: #111827;

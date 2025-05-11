@@ -1,13 +1,20 @@
 <template>
   <div>
     <h3 class="text-xl font-semibold mb-4">Liste des spectacles</h3>
+
+    <!-- Boutons Import/Export CSV -->
     <div class="flex gap-4 mb-4">
       <button @click="exportCSV" class="text-sm text-blue-600 hover:underline">📤Exporter en CSV</button>
+
+      <!-- Input caché utilisé pour l'import CSV -->
       <input type="file" ref="csvFile" @change="importCSV" accept=".csv" class="hidden" />
       <button @click="csvFile.click()" class="text-sm text-blue-600 hover:underline">📥Importer un CSV</button>
     </div>
 
+    <!-- Composant DataTable avec slots personnalisés -->
     <DataTable :headers="headersShow" :fields="fieldsShow" :rows="localShows">
+
+      <!-- Titre du spectacle -->
       <template #title="{ row }">
         <div v-if="isEditing[row.id]">
           <input v-model="row.title" class="border px-2 py-1 rounded text-sm w-full" />
@@ -15,6 +22,7 @@
         <span v-else>{{ row.title }}</span>
       </template>
 
+      <!-- Description -->
       <template #description="{ row }">
         <div v-if="isEditing[row.id]">
           <textarea v-model="row.description" class="border px-2 py-1 rounded text-sm w-full" rows="3" />
@@ -22,6 +30,7 @@
         <span v-else>{{ row.description }}</span>
       </template>
 
+      <!-- Durée -->
       <template #duration="{ row }">
         <div v-if="isEditing[row.id]">
           <input type="number" v-model="row.duration" min="1" class="border px-2 py-1 rounded text-sm w-24" />
@@ -29,6 +38,7 @@
         <span v-else>{{ row.duration }} '</span>
       </template>
 
+      <!-- Réservable ou non -->
       <template #bookable="{ row }">
         <div class="flex justify-center items-center h-full">
           <template v-if="isEditing[row.id]">
@@ -41,15 +51,11 @@
         </div>
       </template>
 
+      <!-- Tarification associée au spectacle -->
       <template #prices="{ row }">
         <div v-if="isEditing[row.id]" class="flex flex-col gap-2">
           <label v-for="price in prices" :key="price.id" class="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              :value="price.id"
-              v-model="assignedPrices[row.id]"
-              class="accent-blue-600"
-            />
+            <input type="checkbox" :value="price.id" v-model="assignedPrices[row.id]" class="accent-blue-600" />
             {{ price.description }} {{ price.price }}€
           </label>
         </div>
@@ -60,6 +66,7 @@
         </ul>
       </template>
 
+      <!-- Représentations du spectacle -->
       <template #representations="{ row }">
         <div class="flex justify-center items-center h-full">
           <ToggleDetails openLabel="Détails" closeLabel="Masquer">
@@ -73,24 +80,20 @@
         </div>
       </template>
 
+      <!-- Actions : Modifier, Enregistrer, Supprimer -->
       <template #actions="{ row }">
         <div class="flex flex-col gap-2 items-start mt-1">
           <button v-if="!isEditing[row.id]" class="text-blue-600 text-sm hover:underline" @click="editRow(row.id)">
             ✏️ Modifier
           </button>
           <template v-else>
-            <button class="text-green-600 text-sm hover:underline" @click="saveRow(row)">
-              ✅Enregistrer
-            </button>
-            <button class="text-gray-600 text-sm hover:underline" @click="cancelEdit(row.id)">
-              🔄Annuler
-            </button>
-            <button class="text-red-600 text-sm hover:underline" @click="deleteShow(row.id)">
-              🗑️Supprimer
-            </button>
+            <button class="text-green-600 text-sm hover:underline" @click="saveRow(row)">✅Enregistrer</button>
+            <button class="text-gray-600 text-sm hover:underline" @click="cancelEdit(row.id)">🔄Annuler</button>
+            <button class="text-red-600 text-sm hover:underline" @click="deleteShow(row.id)">🗑️Supprimer</button>
           </template>
         </div>
       </template>
+
     </DataTable>
   </div>
 </template>
@@ -109,20 +112,20 @@ const representations = ref(page.props.representations ?? [])
 const prices = ref(page.props.prices ?? [])
 const priceShow = ref(page.props.priceShow ?? [])
 
-// État local
-const localShows = ref([])
-const assignedPrices = ref({})
-const isEditing = ref({})
+// États réactifs
+const localShows = ref([])            // Copie des spectacles modifiable localement
+const assignedPrices = ref({})        // Map des prix assignés par show_id
+const isEditing = ref({})             // Dictionnaire des lignes en cours d'édition
+const csvFile = ref(null)             // Référence à l'input file caché
 
-// Reconstruction initiale
+// Hydratation initiale + watch sur props
 hydrateLocalShows()
 hydrateAssignedPrices()
 
-// Watch sur mise à jour via Inertia
 watch(() => page.props.shows, hydrateLocalShows)
 watch(() => page.props.priceShow, hydrateAssignedPrices)
 
-// Fonctions de reconstruction
+// Construction des spectacles locaux
 function hydrateLocalShows() {
   const raw = page.props.shows ?? []
   const reps = page.props.representations ?? []
@@ -135,6 +138,7 @@ function hydrateLocalShows() {
   }))
 }
 
+// Mapping des prix affectés par show_id
 function hydrateAssignedPrices() {
   const mapping = {}
   const current = page.props.priceShow ?? []
@@ -149,22 +153,24 @@ function hydrateAssignedPrices() {
   assignedPrices.value = mapping
 }
 
-// Fonctions de rendu
+// Récupère la liste complète des prix affectés à un show
 function getPricesForShow(showId) {
   const ids = priceShow.value.filter(p => p.show_id === showId).map(p => p.price_id)
   return prices.value.filter(p => ids.includes(p.id))
 }
 
-// Actions
+// Active le mode édition pour une ligne
 function editRow(id) {
   isEditing.value[id] = true
   if (!assignedPrices.value[id]) assignedPrices.value[id] = []
 }
 
+// Annule l’édition d’une ligne
 function cancelEdit(id) {
   isEditing.value[id] = false
 }
 
+// Enregistre les données modifiées pour un spectacle
 function saveRow(row) {
   router.put(`/show/${row.id}`, {
     title: row.title,
@@ -180,6 +186,7 @@ function saveRow(row) {
   })
 }
 
+// Supprime un spectacle
 function deleteShow(id) {
   if (!confirm('Supprimer définitivement ce spectacle ?')) return
   router.delete(`/show/${id}`, {
@@ -191,22 +198,25 @@ function deleteShow(id) {
   })
 }
 
+// Téléchargement CSV
 function exportCSV() {
   window.open(route('shows.export'), '_blank')
 }
 
+// Import CSV
 function importCSV(event) {
   const file = event.target.files[0]
   if (!file) return
   const formData = new FormData()
   formData.append('csv_file', file)
+
   router.post(route('shows.import'), formData, {
     forceFormData: true,
     onSuccess: () => router.reload()
   })
 }
 
-const csvFile = ref(null)
+// Colonnes du tableau
 const headersShow = ['Titre', 'Description', 'Durée', 'Réservable', 'Tarification', 'Représentations', 'Actions']
 const fieldsShow = ['title', 'description', 'duration', 'bookable', 'prices', 'representations', 'actions']
 </script>

@@ -8,33 +8,40 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
-     * The root template that is loaded on the first page visit.
+     * Vue Blade principale utilisée par Inertia pour toutes les pages.
+     * Elle doit contenir le point d’entrée de l’app Vue.js (ex : <div id="app"></div>)
      *
-     * @var string
+     * Ex. : resources/views/app.blade.php
      */
     protected $rootView = 'app';
 
     /**
-     * Determine the current asset version.
+     * Version des assets pour invalider le cache automatiquement.
+     * Peut être utilisée pour déclencher un rechargement du front après un déploiement.
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        return parent::version($request); // Peut être surchargé pour une version personnalisée
     }
 
     /**
-     * Define the props that are shared by default.
+     * Propriétés globales disponibles côté client (Vue.js) dans toutes les pages.
      *
-     * @return array<string, mixed>
+     * Exemple :
+     *   - Authentification utilisateur
+     *   - Jeton CSRF
+     *   - Paramètres globaux, préférences, traductions, etc.
      */
-     public function share(Request $request): array
-{
-    return array_merge(parent::share($request), [
-        'auth' => [
-            'user' => $request->user() ? $request->user()->load('roles') : null,
-        ],
-        'csrf_token' => csrf_token(),
-    ]);
-}
+    public function share(Request $request): array
+    {
+        return array_merge(parent::share($request), [
+            // Données d’authentification (utilisateur et ses rôles)
+            'auth' => [
+                'user' => $request->user() ? $request->user()->load('roles') : null,
+            ],
 
+            // Jeton CSRF exposé au frontend (nécessaire pour les requêtes POST sécurisées)
+            'csrf_token' => csrf_token(),
+        ]);
+    }
 }

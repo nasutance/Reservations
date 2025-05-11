@@ -10,59 +10,79 @@ use Inertia\Inertia;
 
 class ArtistController extends Controller
 {
+    // Intègre les méthodes pour vérifier les autorisations définies dans les Policies
     use AuthorizesRequests;
 
+    /**
+     * Affiche la liste des artistes (avec leurs types et spectacles liés).
+     */
     public function index()
     {
+        // Vérifie si l'utilisateur a le droit de voir tous les artistes
         $this->authorize('viewAny', Artist::class);
 
+        // Récupère tous les artistes avec leurs types et spectacles associés
         $artists = Artist::with(['artistTypes.type', 'artistTypes.shows'])
                          ->select('id', 'firstname', 'lastname')
                          ->get();
 
+        // Affiche la vue Inertia Artist/Index avec les données des artistes
         return Inertia::render('Artist/Index', [
             'artists' => $artists
         ]);
     }
 
+    /**
+     * Affiche le formulaire de création d’un artiste.
+     */
     public function create()
     {
         $this->authorize('create', Artist::class);
         return Inertia::render('Artist/Create');
     }
 
+    /**
+     * Traite l'enregistrement d’un nouvel artiste avec ses types et spectacles.
+     */
     public function store(Request $request)
     {
         $this->authorize('create', Artist::class);
-    
+
+        // Validation des champs du formulaire
         $validated = $request->validate([
             'firstname' => 'required|max:60',
             'lastname' => 'required|max:60',
-            'types' => 'array',
+            'types' => 'array', // tableau d’ID de types
             'types.*' => 'exists:types,id',
-            'shows' => 'array',
+            'shows' => 'array', // tableau associatif type_id => [show_id,...]
             'shows.*' => 'array',
             'shows.*.*' => 'exists:shows,id',
         ]);
-    
+
+        // Création de l’artiste principal
         $artist = Artist::create([
             'firstname' => $validated['firstname'],
             'lastname' => $validated['lastname'],
         ]);
-    
+
+        // Création des types et associations aux spectacles
         foreach ($validated['types'] as $typeId) {
             $artistType = $artist->artistTypes()->create([
                 'type_id' => $typeId,
             ]);
-    
+
+            // Récupération des spectacles associés à ce type
             $showsForThisType = $validated['shows'][$typeId] ?? [];
             $artistType->shows()->sync($showsForThisType);
         }
-    
+
+        // Redirection vers le tableau de bord
         return Inertia::location('/dashboard');
     }
-    
 
+    /**
+     * Affiche un artiste en détail.
+     */
     public function show($id)
     {
         $artist = Artist::findOrFail($id);
@@ -73,6 +93,9 @@ class ArtistController extends Controller
         ]);
     }
 
+    /**
+     * Affiche le formulaire de modification d’un artiste.
+     */
     public function edit($id)
     {
         $artist = Artist::findOrFail($id);
@@ -83,36 +106,42 @@ class ArtistController extends Controller
         ]);
     }
 
+    /**
+     * Met à jour les données d’un artiste (nom, types, spectacles liés).
+     */
     public function update(Request $request, Artist $artist)
-  {
-      $validated = $request->validate([
-          'firstname' => 'required',
-          'lastname' => 'required',
-          'types' => 'array',
-          'types.*' => 'exists:types,id',
-          'shows' => 'array',
-      ]);
+    {
+        // Validation des nouvelles données
+        $validated = $request->validate([
+            'firstname' => 'required',
+            'lastname' => 'required',
+            'types' => 'array',
+            'types.*' => 'exists:types,id',
+            'shows' => 'array',
+        ]);
 
-      $artist->update($validated);
+        // Mise à jour des données principales de l’artiste
+        $artist->update($validated);
 
-      // Detach & re-sync artist_type
-      $artist->artistTypes()->delete();
+        // Suppression des anciens artist_types (cascade sur pivot shows via delete)
+        $artist->artistTypes()->delete();
 
-      foreach ($validated['types'] as $typeId) {
-          $artistType = $artist->artistTypes()->create([
-              'type_id' => $typeId,
-          ]);
+        // Re-création des artist_types et re-synchronisation des spectacles
+        foreach ($validated['types'] as $typeId) {
+            $artistType = $artist->artistTypes()->create([
+                'type_id' => $typeId,
+            ]);
 
-          // shows par type
-          $showsForThisType = $validated['shows'][$typeId] ?? [];
-          $artistType->shows()->sync($showsForThisType);
-      }
+            $showsForThisType = $validated['shows'][$typeId] ?? [];
+            $artistType->shows()->sync($showsForThisType);
+        }
 
-      return Inertia::location('/dashboard');
+        return Inertia::location('/dashboard');
+    }
 
-}
-
-
+    /**
+     * Supprime un artiste de la base de données.
+     */
     public function destroy($id)
     {
         $artist = Artist::findOrFail($id);

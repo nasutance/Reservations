@@ -1,61 +1,41 @@
 <?php
+
 namespace App\Providers;
+
 use Illuminate\Support\ServiceProvider;
-use App\Models\User;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
-use App\Models\Reservation;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * AppServiceProvider est chargé d'enregistrer et de configurer les services globaux de l'application.
+ * Il s'agit d'un point central pour initialiser des comportements transversaux.
+ */
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Méthode appelée au démarrage pour enregistrer les services.
+     * Utilisée pour l'injection de dépendances ou les bindings dans le conteneur.
+     * Ici, rien n'est nécessaire.
+     */
+    public function register() {}
 
-    public function register(){}
+    /**
+     * Méthode appelée après l’enregistrement de tous les services.
+     * C’est ici qu’on peut définir des comportements de démarrage spécifiques.
+     */
+    public function boot()
+    {
+        // 🔒 Environnement sécurisé :
+        // Si l'application est en production, on force toutes les URL à utiliser HTTPS
+        // Cela évite que les liens générés soient en HTTP non sécurisé.
+        if (env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        }
 
-    public function boot(){
-
-      if (env('APP_ENV') === 'production') {
-        URL::forceScheme('https');
-      }
-
-      Gate::define('index-artist', function (User $user) {
-        return $user->role === 'admin' or $user->role === 'member';
-      });
-
-      Gate::define('show-artist', function (User $user) {
-        return $user->role === 'admin' or $user->role === 'member';
-      });
-
-      Gate::define('create-artist', function (User $user) {
-        return $user->role === 'admin';
-      });
-
-      Gate::define('update-artist', function (User $user) {
-        return $user->role === 'admin';
-      });
-
-      Gate::define('delete-artist', function (User $user) {
-        return $user->role === 'admin';
-      });
-
-      Gate::define('manage-shows', function (User $user) {
-        return $user->roles()->where('role', 'admin')->exists();
-      });
-
-      Gate::define('manage-representations', function (User $user) {
-        return $user->roles()->where('role', 'admin')->exists();
-      });
-
-          Gate::define('view-shows', function (User $user) {
-        return $user->roles->contains('role', 'member') ||
-               $user->roles->contains('role', 'admin') ||
-               $user->roles->contains('role', 'press');
-             });
-
-      // Charger les routes API
-      Route::middleware('api')
-      ->prefix('api')
-      ->group(base_path('routes/api.php'));
+        // 🔁 Chargement manuel du fichier de routes API (optionnel)
+        // Normalement géré automatiquement par Laravel, mais on peut l'ajouter ici pour s'assurer qu'il est bien inclus.
+        Route::middleware('api')            // On applique le middleware "api"
+            ->prefix('api')                 // Préfixe de l'URL pour toutes les routes concernées
+            ->group(base_path('routes/api.php')); // On charge les routes du fichier api.php
     }
 }

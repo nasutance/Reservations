@@ -4,13 +4,14 @@ import { usePage, router } from '@inertiajs/vue3'
 import DataTable from '@/Components/DataTable.vue'
 import { formatDate } from '@/utils/formatDate.js'
 
-// Props Inertia
-const reservations = usePage().props.reservations ?? []
-const prices = usePage().props.prices ?? []
+// Récupère les données envoyées par le backend via Inertia
+const reservations = usePage().props.reservations ?? []  // Liste des réservations
+const prices = usePage().props.prices ?? []              // Liste des tarifs disponibles
 
-// Formattage des réservations
+// Formatage enrichi des données de réservation
 const formattedReservations = computed(() => {
   return reservations.map(resa => {
+    // On enrichit chaque représentation avec un champ pivot cloné (copie de prix/quantité)
     const enrichedReps = (resa.representations ?? []).map(rep => ({
       ...rep,
       pivot: {
@@ -20,13 +21,14 @@ const formattedReservations = computed(() => {
       },
     }))
 
+    // Construction du détail textuel pour affichage HTML
     const detail = enrichedReps
       .filter(rep => rep.pivot.quantity > 0)
       .map(rep => {
         const price = prices.find(p => p.id === rep.pivot.price_id)
         return price ? `${rep.pivot.quantity} ${price.type}` : `${rep.pivot.quantity} -`
       })
-      .join('<br>')
+      .join('<br>') // pour affichage multiligne
 
     return {
       id: resa.id,
@@ -41,9 +43,11 @@ const formattedReservations = computed(() => {
   })
 })
 
+// En-têtes et champs à afficher dans le tableau
 const headersResa = ['#', 'Spectacle', 'Représentation', 'Statut', 'Détail', 'Actions']
 const fieldsResa = ['id', 'showTitle', 'schedule', 'status', 'detail', 'actions']
 
+// Fonction pour changer le statut d'une réservation (payée ou annulée)
 function updateStatus(id, status) {
   if (status === 'annulée' && !confirm('Confirmer l’annulation de cette réservation ?')) return
 
@@ -51,21 +55,26 @@ function updateStatus(id, status) {
     method: 'patch',
     data: { status },
     preserveScroll: true,
-    preserveState: false // <- important ici
+    preserveState: false // On veut rafraîchir les données complètement
   })
 }
 </script>
 
 <template>
   <div>
+    <!-- Titre principal -->
     <h2 class="text-xl font-semibold text-gray-800 leading-tight mb-4">Mes réservations</h2>
+
     <div class="p-6 text-gray-900">
+      <!-- Affichage du tableau uniquement si des données existent -->
       <DataTable
         v-if="formattedReservations.length"
         :headers="headersResa"
         :fields="fieldsResa"
         :rows="formattedReservations"
       >
+
+        <!-- Affichage stylisé du statut (couleur conditionnelle) -->
         <template #status="{ row }">
           <span class="capitalize font-semibold"
                 :class="{
@@ -77,12 +86,15 @@ function updateStatus(id, status) {
           </span>
         </template>
 
+        <!-- Détail des billets par type (HTML multiligne) -->
         <template #detail="{ row }">
           <span v-html="row.detail" />
         </template>
 
+        <!-- Actions disponibles selon le statut -->
         <template #actions="{ row }">
           <div class="flex gap-3">
+            <!-- Bouton "payer" disponible uniquement si en attente -->
             <button
               v-if="row.status === 'en attente'"
               @click="updateStatus(row.id, 'payée')"
@@ -90,6 +102,8 @@ function updateStatus(id, status) {
             >
               💳 Payer
             </button>
+
+            <!-- Bouton "annuler" disponible sauf si déjà annulé -->
             <button
               v-if="row.status !== 'annulée'"
               @click="updateStatus(row.id, 'annulée')"
@@ -101,6 +115,7 @@ function updateStatus(id, status) {
         </template>
       </DataTable>
 
+      <!-- Message si aucune réservation -->
       <p v-else class="mt-4 text-gray-500">
         Aucune réservation pour le moment.
       </p>

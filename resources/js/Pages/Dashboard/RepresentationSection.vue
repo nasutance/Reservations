@@ -1,127 +1,151 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import { formatDate } from '@/utils/formatDate.js'
 import DataTable from '@/Components/DataTable.vue'
 
+// Accès aux données injectées via Inertia (props)
 const page = usePage()
-const roles = ref(page.props.roles ?? [])
-const users = ref(page.props.users ?? [])
+const locations = ref(page.props.locations ?? [])           // Lieux disponibles
+const shows = ref(page.props.shows ?? [])                   // Spectacles disponibles
+const representations = ref(page.props.representations ?? []) // Représentations du backend
 
-const localUsers = ref([])
-const editingUserIds = ref(new Set())
+// Données locales modifiables
+const localRepresentations = ref([])                        // Copie modifiable des représentations
+const editingIds = ref(new Set())                           // IDs des lignes en cours d’édition
 
-hydrateLocalUsers()
-watch(() => page.props.users, hydrateLocalUsers)
+// Hydrate les données locales au chargement initial
+hydrateLocalRepresentations()
 
-function hydrateLocalUsers() {
-  const raw = page.props.users ?? []
-  localUsers.value = raw.map(user => ({
-    id: user.id,
-    firstname: user.firstname,
-    lastname: user.lastname,
-    email: user.email,
-    langue: user.langue,
-    selectedRoleIds: user.roles?.map(r => r.id) ?? [],
-    role: user.roles?.map(r => r.role).join(', ') || '-',
+// Met à jour localRepresentations si props.representations change
+watch(() => page.props.representations, hydrateLocalRepresentations)
+
+// Copie chaque représentation pour usage local, évite mutation directe
+function hydrateLocalRepresentations() {
+  const reps = page.props.representations ?? []
+  localRepresentations.value = reps.map(rep => ({
+    ...rep,
+    location_id: rep.location_id,
+    show_id: rep.show_id,
   }))
 }
 
-function isEditingUser(id) {
-  return editingUserIds.value.has(id)
+// Vérifie si une ligne est en cours d'édition
+function isEditing(id) {
+  return editingIds.value.has(id)
 }
 
-function toggleUserEdit(id) {
-  if (isEditingUser(id)) editingUserIds.value.delete(id)
-  else editingUserIds.value.add(id)
+// Alterne le mode édition pour une ligne
+function toggleEdit(id) {
+  if (isEditing(id)) editingIds.value.delete(id)
+  else editingIds.value.add(id)
 }
 
-function saveUser(row) {
-  router.put(`/users/${row.id}`, {
-    firstname: row.firstname,
-    lastname: row.lastname,
-    email: row.email,
-    langue: row.langue,
-    roles: row.selectedRoleIds,
+// Ajoute une ligne vide en haut du tableau
+function addNewRepresentationRow() {
+  const newRow = {
+    id: `new-${Date.now()}`, // ID temporaire pour usage local
+    schedule: '',
+    location_id: locations.value[0]?.id ?? null,
+    show_id: shows.value[0]?.id ?? null,
+    isNew: true
+  }
+  localRepresentations.value.unshift(newRow)
+  editingIds.value.add(newRow.id)
+}
+
+// Enregistre la ligne (création ou mise à jour)
+function save(row) {
+  const method = row.isNew ? 'post' : 'put'
+  const url = row.isNew ? '/representation' : `/representation/${row.id}`
+
+  router[method](url, {
+    schedule: row.schedule,
+    location_id: row.location_id,
+    show_id: row.show_id
   }, {
     onSuccess: () => {
-      window.location.reload()
-    },
-    onError: (errors) => {
-      console.error('Erreur de validation', errors)
+      editingIds.value.delete(row.id)
+      router.reload({ preserveScroll: true }) // Recharge les données après maj
     }
   })
 }
 
-function deleteUser(id) {
-  if (!confirm('Supprimer définitivement cet utilisateur ?')) return
+// Supprime une représentation après confirmation
+function deleteRow(id) {
+  if (!confirm('Supprimer définitivement cette représentation ?')) return
 
-  router.delete(`/users/${id}`, {
+  router.delete(`/representation/${id}`, {
+    preserveScroll: true,
     onSuccess: () => {
-      window.location.reload()
-    },
-    onError: (error) => {
-      console.error('Erreur de suppression', error)
+      editingIds.value.delete(id)
+      router.reload({ preserveScroll: true })
     }
   })
 }
 
-const headersUser = ['Prénom', 'Nom', 'Email', 'Langue', 'Rôle', 'Actions']
-const fieldsUser = ['firstname', 'lastname', 'email', 'langue', 'role', 'actions']
+// Configuration des colonnes du tableau
+const headers = ['Date & Heure', 'Lieu', 'Spectacle', 'Actions']
+const fields = ['schedule', 'location', 'show', 'actions']
 </script>
 
 <template>
   <div>
-    <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
+    <!-- Titre de la section -->
+    <h3 class="text-xl font-semibold mb-4">Liste des représentations</h3>
 
-    <DataTable :headers="headersUser" :fields="fieldsUser" :rows="localUsers">
-      <template #firstname="{ row }">
-        <input v-if="isEditingUser(row.id)" v-model="row.firstname" class="border px-2 py-1 rounded w-full" />
-        <span v-else>{{ row.firstname }}</span>
+    <!-- Bouton pour ajouter une nouvelle ligne -->
+    <button @click="addNewRepresentationRow">➕ Ajouter une représentation</button>
+
+    <!-- Composant tableau réutilisable -->
+    <DataTable :headers="headers" :fields="fields" :rows="localRepresentations">
+
+      <!-- Date & heure -->
+      <template #schedule="{ row }">
+        <input
+          v-if="isEditing(row.id)"
+          type="datetime-local"
+          v-model="row.schedule"
+          class="border px-2 py-1 rounded w-full"
+        />
+        <span v-else>{{ formatDate(row.schedule, { time: true }) }}</span>
       </template>
 
-      <template #lastname="{ row }">
-        <input v-if="isEditingUser(row.id)" v-model="row.lastname" class="border px-2 py-1 rounded w-full" />
-        <span v-else>{{ row.lastname }}</span>
+      <!-- Sélecteur de lieu -->
+      <template #location="{ row }">
+        <select v-if="isEditing(row.id)" v-model="row.location_id" class="border px-2 py-1 rounded w-full">
+          <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.designation }}</option>
+        </select>
+        <span v-else>{{ row.location?.designation ?? '—' }}</span>
       </template>
 
-      <template #email="{ row }">
-        <input v-if="isEditingUser(row.id)" v-model="row.email" class="border px-2 py-1 rounded w-full" />
-        <span v-else>{{ row.email }}</span>
+      <!-- Sélecteur de spectacle -->
+      <template #show="{ row }">
+        <select v-if="isEditing(row.id)" v-model="row.show_id" class="border px-2 py-1 rounded w-full">
+          <option v-for="s in shows" :key="s.id" :value="s.id">{{ s.title }}</option>
+        </select>
+        <span v-else>{{ row.show?.title ?? '—' }}</span>
       </template>
 
-      <template #langue="{ row }">
-        <input v-if="isEditingUser(row.id)" v-model="row.langue" class="border px-2 py-1 rounded w-full" />
-        <span v-else>{{ row.langue }}</span>
-      </template>
-
-      <template #role="{ row }">
-        <div v-if="isEditingUser(row.id)">
-          <label v-for="role in roles" :key="role.id" class="block text-sm">
-            <input type="checkbox" :value="role.id" v-model="row.selectedRoleIds" class="mr-1" />
-            {{ role.role }}
-          </label>
-        </div>
-        <span v-else>{{ row.role }}</span>
-      </template>
-
+      <!-- Actions : modifier, enregistrer, supprimer -->
       <template #actions="{ row }">
-        <div class="flex flex-col gap-2 items-start mt-1">
-          <button v-if="!isEditingUser(row.id)" class="text-blue-600 text-sm hover:underline" @click="toggleUserEdit(row.id)">
-            ✏️ Modifier
+        <div class="flex gap-2 items-center">
+          <button @click="toggleEdit(row.id)" class="text-sm text-blue-600">
+            {{ isEditing(row.id) ? 'Annuler' : '✏️ Modifier' }}
           </button>
-          <template v-else>
-            <button class="text-green-600 text-sm hover:underline" @click="saveUser(row)">
-              💾 Enregistrer
-            </button>
-            <button class="text-gray-600 text-sm hover:underline" @click="toggleUserEdit(row.id)">
-              🔄 Annuler
-            </button>
-            <button class="text-red-600 text-sm hover:underline" @click="deleteUser(row.id)">
-              🗑️ Supprimer
-            </button>
-          </template>
+          <button v-if="isEditing(row.id)" @click="save(row)" class="text-sm text-green-600">
+            💾 Enregistrer
+          </button>
+          <button
+            v-if="isEditing(row.id) && !row.isNew"
+            @click="deleteRow(row.id)"
+            class="text-sm text-red-500 ml-2"
+          >
+            ❌
+          </button>
         </div>
       </template>
+
     </DataTable>
   </div>
 </template>

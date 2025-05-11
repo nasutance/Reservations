@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FeedController;
 use Inertia\Inertia;
+
+// Importation des contrôleurs utilisés
 use App\Http\Controllers\{
+    FeedController,
     ProfileController,
     ArtistController,
     TypeController,
@@ -19,44 +21,56 @@ use App\Http\Controllers\{
     UserController
 };
 
+// ====================
+// Flux RSS (package Spatie)
+// ====================
 Route::feeds();
 
-// Page d’accueil
+// ====================
+// Page d’accueil (publique)
+// ====================
 Route::get('/', fn () => Inertia::render('Home'));
 
-// Dashboard (authentifié + email vérifié)
+// ====================
+// Tableau de bord (accessible uniquement aux utilisateurs authentifiés et vérifiés)
+// ====================
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-// Gestion du profil
+// ====================
+// Gestion du profil utilisateur (authentifié)
+// ====================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Routes RESTful pour les ressources principales
+// ====================
+// Ressources RESTful classiques
+// ====================
 Route::resources([
-    'artist' => ArtistController::class,
-    'type' => TypeController::class,
-    'price' => PriceController::class,
-    'locality' => LocalityController::class,
-    'role' => RoleController::class,
-    'show' => ShowController::class,
-    'location' => LocationController::class,
+    'artist'         => ArtistController::class,
+    'type'           => TypeController::class,
+    'price'          => PriceController::class,
+    'locality'       => LocalityController::class,
+    'role'           => RoleController::class,
+    'show'           => ShowController::class,
+    'location'       => LocationController::class,
     'representation' => RepresentationController::class,
-
 ]);
 
-// Ressource "user" sans les routes POST
-Route::middleware(['auth'])->group(function () {
+// ====================
+// Ressource "user" (authentifié) — sans création ni insertion
+// ====================
+Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class)->except(['create', 'store']);
 });
 
-
-
-// Routes spécifiques aux réservations
+// ====================
+// Gestion des réservations (authentifié)
+// ====================
 Route::middleware('auth')->group(function () {
     Route::get('/reservation/{show}', [ReservationController::class, 'create'])->name('reservation.create');
     Route::post('/reservation', [ReservationController::class, 'store'])->name('reservation.store');
@@ -64,25 +78,37 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservation/details/{reservation}', [ReservationController::class, 'show'])->name('reservation.show');
     Route::patch('/reservation/{reservation}', [ReservationController::class, 'update'])->name('reservation.update');
     Route::delete('/reservation/{reservation}', [ReservationController::class, 'destroy'])->name('reservation.destroy');
+
+    // Ajouter une ligne (combinaison représentation + tarif) à une réservation existante
     Route::post('/reservation/{reservation}/add-line', [ReservationController::class, 'addLine'])->name('reservation.addLine');
+
+    // Supprimer une ligne d’une réservation
     Route::delete('/reservation/{reservation}/line/{representation}/{price}', [ReservationController::class, 'destroyLine']);
 });
 
-// Routes personnalisées pour les tags
+// ====================
+// Gestion des tags pour les spectacles (authentifié)
+// ====================
 Route::middleware(['auth'])->group(function () {
     Route::post('/shows/{show}/tags', [TagController::class, 'attach'])->name('show.attachTag');
 });
 
-// Page de remerciement après une réservation
+// ====================
+// Page de remerciement après une réservation (authentifié)
+// ====================
 Route::get('/merci', fn () => Inertia::render('Reservation/Thanks', [
     'reservationId' => session('reservationId'),
 ]))->middleware('auth')->name('reservation.thanks');
 
-// Auth routes Laravel Breeze
+// ====================
+// Authentification (routes générées par Laravel Breeze)
+// ====================
 require __DIR__.'/auth.php';
 
+// ====================
+// Import/Export des spectacles (réservé aux utilisateurs autorisés à créer un Show)
+// ====================
 Route::middleware(['auth', 'can:create,App\Models\Show'])->group(function () {
     Route::post('/shows/import', [ShowController::class, 'import'])->name('shows.import');
     Route::get('/shows/export', [ShowController::class, 'export'])->name('shows.export');
 });
-

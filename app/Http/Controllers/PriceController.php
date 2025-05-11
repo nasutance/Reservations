@@ -9,31 +9,33 @@ use Inertia\Inertia;
 class PriceController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Affiche la liste de tous les tarifs dans le tableau de bord admin.
+     * Utilise Inertia pour rendre une vue Vue.js (`AdminDashboard`) avec les données.
      */
     public function index()
     {
         return Inertia::render('AdminDashboard', [
-            'prices' => Price::all(),
-            // autres props si nécessaire
+            'prices' => Price::all(), // Envoie tous les tarifs au composant Vue
+            // autres propriétés éventuelles : messages flash, utilisateur, etc.
         ]);
     }
-    
-
 
     /**
-     * Show the form for creating a new resource.
+     * Affiche le formulaire de création d'un nouveau tarif.
+     * (À implémenter si nécessaire, par exemple avec une page Vue via Inertia).
      */
     public function create()
     {
-        //
+        // TODO : retourner un composant Vue avec un formulaire (ex: PriceForm.vue)
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Enregistre un nouveau tarif dans la base de données.
+     * Valide les données du formulaire, puis crée un enregistrement `Price`.
      */
     public function store(Request $request)
     {
+        // Validation des données envoyées par le formulaire
         $validated = $request->validate([
             'type' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -41,37 +43,43 @@ class PriceController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
-    
-        Price::create($validated);
-    
-        return Inertia::location('/dashboard');
 
+        // Création du tarif avec les données validées
+        Price::create($validated);
+
+        // Redirection vers le dashboard (comportement SPA via Inertia)
+        return Inertia::location('/dashboard');
     }
-    
+
     /**
-     * Display the specified resource.
+     * Affiche les détails d’un tarif spécifique.
+     * Cette méthode n’utilise pas Inertia ici, mais une vue Blade classique.
      */
     public function show(string $id)
     {
-      $price = Price::find($id);
-      return view('price.show',[
-        'price' => $price,
-      ]);
+        $price = Price::find($id); // Recherche du tarif par ID
+
+        return view('price.show', [ // Retour d'une vue Blade
+            'price' => $price,
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Affiche le formulaire de modification pour un tarif spécifique.
+     * (À implémenter si nécessaire avec un composant Vue via Inertia).
      */
     public function edit(string $id)
     {
-        //
+        // TODO : retourner un composant Vue avec les données du tarif à modifier
     }
 
     /**
-     * Update the specified resource in storage.
+     * Met à jour un tarif existant dans la base de données.
+     * Valide les nouvelles données puis applique la mise à jour.
      */
     public function update(Request $request, Price $price)
     {
+        // Validation des champs
         $validated = $request->validate([
             'type' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -79,23 +87,21 @@ class PriceController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
-    
+
+        // Mise à jour de l'objet Price
         $price->update($validated);
-    
+
+        // Redirection vers le dashboard
         return Inertia::location('/dashboard');
-
     }
-    
-
 
     /**
-     * Remove the specified resource from storage.
+     * Supprime un tarif de la base de données.
      */
     public function destroy(Price $price)
     {
-        $price->delete();
-    
-        return Inertia::location('/dashboard');
+        $price->delete(); // Suppression du tarif
 
+        return Inertia::location('/dashboard'); // Redirection vers le dashboard
     }
 }
