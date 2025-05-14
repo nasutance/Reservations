@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import DataTable from '@/Components/DataTable.vue'
 import { formatDate } from '@/utils/formatDate.js'
@@ -26,9 +26,11 @@ const formattedReservations = computed(() => {
       .filter(rep => rep.pivot.quantity > 0)
       .map(rep => {
         const price = prices.find(p => p.id === rep.pivot.price_id)
-        return price ? `${rep.pivot.quantity} ${price.type}` : `${rep.pivot.quantity} -`
+        return {
+          quantity: rep.pivot.quantity,
+          type: price?.type || '-'
+        }
       })
-      .join('<br>') // pour affichage multiligne
 
     return {
       id: resa.id,
@@ -88,8 +90,16 @@ function updateStatus(id, status) {
 
         <!-- Détail des billets par type (HTML multiligne) -->
         <template #detail="{ row }">
-          <span v-html="row.detail" />
+          <div v-if="Array.isArray(row.detail)">
+            <div v-for="(item, index) in row.detail" :key="index">
+              {{ item.quantity }} {{ item.type }}
+            </div>
+          </div>
+          <div v-else>
+            {{ row.detail }}
+          </div>
         </template>
+
 
         <!-- Actions disponibles selon le statut -->
         <template #actions="{ row }">

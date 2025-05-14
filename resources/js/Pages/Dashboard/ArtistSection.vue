@@ -33,27 +33,33 @@
 
       <!-- Colonne "Spectacles" : affichage par type d'artiste si édition -->
       <template #shows="{ row }">
-        <div v-if="isEditing(row.id)">
-          <div v-for="typeId in row.selectedTypeIds" :key="typeId" class="mb-2">
-            <strong class="text-sm block mb-1">{{ getTypeLabel(typeId) }}</strong>
-            <div class="grid grid-cols-2 gap-1">
-              <label v-for="show in shows" :key="`type-${typeId}-show-${show.id}`" class="text-sm">
-                <input
-                  type="checkbox"
-                  :value="show.id"
-                  :v-model="getShowBinding(row, typeId)"
-                  class="mr-1"
-                />
-                {{ show.title }}
-              </label>
-            </div>
-          </div>
-        </div>
-        <span v-else>
-          <span v-if="row.showsText">{{ row.showsText }}</span>
-          <span v-else>—</span>
-        </span>
-      </template>
+  <div v-if="isEditing(row.id)">
+    <div v-for="typeId in row.selectedTypeIds" :key="typeId" class="mb-2">
+      <strong class="text-sm block mb-1">{{ getTypeLabel(typeId) }}</strong>
+      <div class="grid grid-cols-2 gap-1">
+        <label
+          v-for="show in shows"
+          :key="`type-${typeId}-show-${show.id}`"
+          class="text-sm"
+        >
+          <input
+            type="checkbox"
+            :value="show.id"
+            :checked="row.selectedShowTypeMap[typeId]?.includes(show.id)"
+            @change="toggleShowSelection(row, typeId, show.id, $event)"
+            class="mr-1"
+          />
+          {{ show.title }}
+        </label>
+      </div>
+    </div>
+  </div>
+  <span v-else>
+    <span v-if="row.showsText">{{ row.showsText }}</span>
+    <span v-else>—</span>
+  </span>
+</template>
+
 
       <!-- Colonne "Actions" : bouton modifier/enregistrer/annuler/supprimer -->
       <template #actions="{ row }">
@@ -214,6 +220,11 @@ async function saveArtist(row) {
     }
   }
 
+  // 🧠 🔧 Correction : cast explicite des clés de type_id en Number
+  row.selectedShowTypeMap = Object.fromEntries(
+    Object.entries(row.selectedShowTypeMap).map(([k, v]) => [Number(k), v])
+  )
+
   await router[method](url, {
     firstname: row.firstname,
     lastname: row.lastname,
@@ -222,10 +233,11 @@ async function saveArtist(row) {
   }, {
     onSuccess: () => {
       editingIds.value.delete(row.id)
-      router.reload({ preserveScroll: true }) // Recharge les données sans changer la position
+      router.reload({ preserveScroll: true })
     }
   })
 }
+
 
 // Supprime un artiste après confirmation
 function deleteArtist(id) {
@@ -237,6 +249,19 @@ function deleteArtist(id) {
       router.reload({ preserveScroll: true })
     }
   })
+}
+function toggleShowSelection(row, typeId, showId, event) {
+  if (!Array.isArray(row.selectedShowTypeMap[typeId])) {
+    row.selectedShowTypeMap[typeId] = []
+  }
+
+  const selected = row.selectedShowTypeMap[typeId]
+
+  if (event.target.checked && !selected.includes(showId)) {
+    selected.push(showId)
+  } else if (!event.target.checked && selected.includes(showId)) {
+    row.selectedShowTypeMap[typeId] = selected.filter(id => id !== showId)
+  }
 }
 
 // Colonnes du tableau (affichage & correspondance des champs)
