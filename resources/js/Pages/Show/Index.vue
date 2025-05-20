@@ -20,29 +20,9 @@
         <option value="desc">Desc</option>
       </select>
 
-      <select v-model="filters.tag" class="input">
-  <option value="">-- Filtrer par mot-clé --</option>
-  <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-    {{ tag.tag }}
-  </option>
-</select>
-
-
       <button type="submit" class="btn">Filtrer</button>
       <button @click.prevent="reset" class="btn">Réinitialiser</button>
     </form>
-
-    <div v-if="tags.length" class="mb-6">
-      <p class="font-semibold">Spectacles <span class="italic">sans</span> ces mots-clés :</p>
-      <ul class="flex gap-2 flex-wrap mt-2">
-        <li v-for="tag in tags" :key="tag.id">
-        <button @click="filterWithoutTag(tag.id)" class="text-red-600 hover:underline text-sm bg-red-100 px-2 py-1 rounded">
-{{ tag.tag }}
-</button>
-        </li>
-      </ul>
-    </div>
-
 
     <ul class="space-y-4">
       <li v-for="show in shows.data" :key="show.id" class="border p-4 rounded shadow-sm">
@@ -93,23 +73,10 @@ const filters = reactive({
   postal_code: page.props.filters.postal_code || '',
   sort: page.props.filters.sort || '',
   direction: page.props.filters.direction || 'asc',
-  tag: page.props.filters.tag || '',
 })
-const tags = page.props.tags
-
 
 function filter() {
   router.get(route('show.index'), filters, { preserveScroll: true, preserveState: true })
-}
-
-function filterWithoutTag(tagId) {
-  router.get('/show', {
-    ...filters,
-    without_tag: tagId,
-  }, {
-    preserveScroll: true,
-    preserveState: true
-  })
 }
 
 function reset() {

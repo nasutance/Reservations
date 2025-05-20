@@ -86,11 +86,4 @@ class Show extends Model
         return $this->belongsToMany(Price::class);
     }
 
-    /**
-     * Relation N-N : un spectacle peut être associé à plusieurs tags (mots-clés)
-     */
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class);
-    }
 }
