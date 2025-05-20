@@ -2,7 +2,7 @@
   <!-- Layout principal de l'application -->
   <AppLayout>
     <article>
-      <!-- Titre du spectacle -->
+       <!-- Titre du spectacle -->
       <h1 class="text-2xl font-bold mb-4">{{ show.title }}</h1>
 
       <!-- Affiche du spectacle si dispo, sinon canvas vide -->
@@ -19,17 +19,13 @@
       <p><strong>Durée :</strong> {{ show.duration }} minutes</p>
       <p><strong>Année de création :</strong> {{ show.created_in }}</p>
 
-      <p>
-        <em>{{ show.bookable ? 'Réservable' : 'Non réservable' }}</em>
-      </p>
-
       <h2 class="mt-6 font-semibold">Mots-clés</h2>
       <ul v-if="show.tags && show.tags.length" class="list-disc list-inside">
         <li v-for="tag in show.tags" :key="tag.id">{{ tag.tag }}</li>
       </ul>
       <p v-else>Aucun mot-clé associé.</p>
 
-      <div v-if="user && user.role === 'admin'" class="mt-4">
+      <div v-if="isAdmin"  class="mt-4">
         <form @submit.prevent="submitTag">
           <label for="tag_id" class="block font-semibold mb-1">Ajouter un mot-clé</label>
           <select v-model="form.tag_id" id="tag_id" class="border p-2 rounded mb-2">
@@ -45,7 +41,7 @@
        <h2 class="mt-6 font-semibold">Vidéos</h2>
        <div v-if="show.videos && show.videos.length">
         <div v-for="video in show.videos" :key="video.id" class="mb-4">
-          <h3 class="text-lg font-semibold">{{ video.title }}</h3>
+          
           <iframe
           class="w-full max-w-md"
           height="315"
@@ -57,7 +53,7 @@
       </div>
       <p v-else>Aucune vidéo pour ce spectacle.</p>
 
-      <div v-if="user && user.role === 'admin'" class="mt-4">
+      <div v-if="isAdmin" class="mt-4">
         <form @submit.prevent="submitVideo">
           <label for="title" class="block font-semibold mb-1">Titre de la vidéo</label>
           <input v-model="videoForm.title" type="text" class="border p-2 rounded mb-2 w-full" />
@@ -167,9 +163,12 @@ const user = page.props.auth.user
 const allTags = page.props.allTags
 const form = useForm({ tag_id: '' })
 
+// Vérifie si l'utilisateur possède le rôle 'admin'
+const isAdmin = user?.roles?.some(role => role.role === 'admin')
 
 // Traitement des artistes associés au spectacle par type
 // On trie les artistes dans un objet { auteur: [...], scénographe: [...], comédien: [...] }
+
 const collaborateurs = computed(() => {
   const mapping = {
     auteur: [],
@@ -177,20 +176,23 @@ const collaborateurs = computed(() => {
     comédien: [],
   }
 
-  // Boucle sur les types d'artistes associés au spectacle
-  for (const at of show.value.artist_types ?? []) {
-    const type = at.type?.type
-    if (mapping[type]) {
-      mapping[type].push(at.artist)
+  for (const ats of show.value.artist_type_show ?? []) {
+    const type = ats.artist_type?.type?.type
+    const artist = ats.artist_type?.artist
+
+    if (type && artist && mapping[type]) {
+      mapping[type].push(artist)
     }
   }
 
   return mapping
 })
 
+
 const videoForm = useForm({
   title: '',
   video_url: '',
+  show_id: show.value.id,
 })
 
 function submitVideo() {

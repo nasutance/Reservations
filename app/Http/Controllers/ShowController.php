@@ -25,67 +25,93 @@ class ShowController extends Controller
      */
     public function export(): StreamedResponse
     {
-        $this->authorize('export', Show::class); // Sécurité : policy Laravel
-
+        $this->authorize('export', Show::class); // Sécurité
+    
         $filename = 'spectacles_' . now()->format('Y-m-d_H-i-s') . '.csv';
-
+        $separator = ';'; // Séparateur pour compatibilité Excel FR
+    
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
-
-        $callback = function () {
+    
+        $callback = function () use ($separator) {
             $handle = fopen('php://output', 'w');
-
+    
             // Encodage BOM UTF-8 pour Excel
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            // En-têtes de colonnes
-            fputcsv($handle, ['ID', 'Titre', 'Description', 'Durée', 'Réservable']);
-
-            // Parcours des spectacles
-            Show::all()->each(function ($show) use ($handle) {
-                $clean = fn($str) => str_replace(["\r\n", "\n", "\r"], ' ', $str); // Nettoyage des retours à la ligne
-
-                // Ligne de données
+    
+            // En-têtes
+            fputcsv($handle, ['ID', 'Titre', 'Description', 'Durée', 'Réservable'], $separator);
+    
+            Show::all()->each(function ($show) use ($handle, $separator) {
+                $clean = fn($str) => str_replace(["\r\n", "\n", "\r"], ' ', $str);
+    
                 fputcsv($handle, [
                     $show->id,
                     $clean($show->title),
                     $clean($show->description),
                     $show->duration,
                     $show->bookable ? 'oui' : 'non',
-                ]);
+                ], $separator);
             });
-
+    
             fclose($handle);
         };
-
+    
         return response()->stream($callback, 200, $headers);
     }
-
+    
     /**
      * Importe des spectacles depuis un fichier CSV
      */
-    public function import(Request $request)
-    {
-        $this->authorize('create', Show::class); // Vérifie les droits
+/**
+ * Importe des spectacles depuis un fichier CSV
+ */
+public function import(Request $request)
+{
+    $this->authorize('create', Show::class);
 
-        // Validation du fichier uploadé
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt',
-        ]);
+    $request->validate([
+        'csv_file' => 'required|file|mimes:csv,txt',
+    ]);
 
-        $file = $request->file('csv_file');
-        $handle = fopen($file->getRealPath(), 'r');
+    $file = $request->file('csv_file');
+    $path = $file->getRealPath();
+    $separator = ';'; // ⚠️ change selon ton fichier CSV
 
-        $headers = fgetcsv($handle);
-        $headers[0] = preg_replace('/\x{FEFF}/u', '', $headers[0]); // Suppression du BOM UTF-8
+    // Correspondance entre colonnes françaises et noms de champs DB
+    $headerMap = [
+        'Titre' => 'title',
+        'Description' => 'description',
+        'Durée' => 'duration',
+        'Réservable' => 'bookable',
+    ];
 
-        // Parcours ligne par ligne
-        while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($headers, $row); // Associe les valeurs aux noms de colonnes
+    $handle = fopen($path, 'r');
+    $headers = fgetcsv($handle, 1000, $separator);
+    $headers[0] = preg_replace('/\x{FEFF}/u', '', $headers[0]); // Nettoie le BOM
 
-            // Validation des données
+    while (($row = fgetcsv($handle, 1000, $separator)) !== false) {
+        $rawData = array_combine($headers, $row);
+
+        // Remappage FR -> DB
+        $data = [];
+        foreach ($rawData as $key => $value) {
+            $mappedKey = $headerMap[$key] ?? null;
+            if ($mappedKey) {
+                $data[$mappedKey] = $value;
+            }
+        }
+
+        // Nettoyage / conversion des données
+        $data['bookable'] = match (strtolower(trim($data['bookable'] ?? ''))) {
+            'oui', 'yes', '1' => 1,
+            'non', 'no', '0' => 0,
+            default => 0
+        };
+
+        try {
             Validator::make($data, [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -93,23 +119,27 @@ class ShowController extends Controller
                 'bookable' => 'required|in:0,1',
             ])->validate();
 
-            // Insère ou met à jour un spectacle
             Show::updateOrCreate(
                 ['title' => $data['title']],
                 [
                     'description' => $data['description'],
                     'duration' => $data['duration'],
                     'bookable' => $data['bookable'],
-                    'created_in' => now()->year, // Champ supplémentaire pour le tracking
+                    'created_in' => now()->year,
                     'slug' => Str::slug($data['title']),
                 ]
             );
+        } catch (\Throwable $e) {
+            \Log::error("Erreur import show : " . json_encode($data) . " → " . $e->getMessage());
+            continue;
         }
-
-        fclose($handle);
-
-        return Inertia::location('/dashboard');
     }
+
+    fclose($handle);
+
+    return Inertia::location('/dashboard');
+}
+
 
     /**
      * Affiche la liste des spectacles avec filtres dynamiques (search, tri, tag, etc.)
@@ -193,8 +223,8 @@ class ShowController extends Controller
     public function show(string $id)
     {
         $show = Show::with([
-            'artistTypes.artist',
-            'artistTypes.type',
+            'artistTypeShow.artistType.artist',
+            'artistTypeShow.artistType.type',
             'representations.location',
             'location',
             'tags',
