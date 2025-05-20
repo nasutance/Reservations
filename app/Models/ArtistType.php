@@ -64,4 +64,9 @@ class ArtistType extends Model
     {
         return $this->belongsTo(Type::class);
     }
+
+    public function artistTypeShows()
+    {
+        return $this->hasMany(ArtistTypeShow::class);
+    }
 }

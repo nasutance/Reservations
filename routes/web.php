@@ -18,7 +18,8 @@ use App\Http\Controllers\{
     ReservationController,
     DashboardController,
     TagController,
-    UserController
+    UserController,
+    VideoController
 };
 
 // ====================
@@ -115,3 +116,4 @@ Route::middleware(['auth', 'can:create,App\Models\Show'])->group(function () {
 });
 
 Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
+Route::get('/videos/by-artist/{name}', [VideoController::class, 'byArtist']);

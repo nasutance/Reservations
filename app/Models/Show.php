@@ -71,14 +71,6 @@ class Show extends Model
     }
 
     /**
-     * Relation N-N : un spectacle fait intervenir plusieurs artistes avec un rôle (ArtistType)
-     */
-    public function artistTypes(): BelongsToMany
-    {
-        return $this->belongsToMany(ArtistType::class);
-    }
-
-    /**
      * Relation N-N : un spectacle peut être associé à plusieurs tarifs (Price)
      */
     public function prices(): BelongsToMany
@@ -95,5 +87,10 @@ class Show extends Model
     {
         return $this->hasMany(Video::class);
     }      
+
+    public function artistTypeShow()
+    {
+        return $this->hasMany(ArtistTypeShow::class);
+    }
 
 }
