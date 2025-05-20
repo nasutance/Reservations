@@ -52,6 +52,7 @@ class LoginRequest extends FormRequest
 
         // Réinitialise le compteur si la connexion est réussie
         RateLimiter::clear($this->throttleKey());
+        session()->regenerateToken();
     }
 
     /**

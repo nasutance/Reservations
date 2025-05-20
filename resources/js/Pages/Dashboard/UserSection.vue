@@ -65,6 +65,8 @@
 import { ref, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import DataTable from '@/Components/DataTable.vue'
+import axios from 'axios'
+
 
 // Données issues des props Inertia
 const page = usePage()
@@ -111,8 +113,11 @@ function saveUser(row) {
     langue: row.langue,
     roles: row.selectedRoleIds,
   }, {
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    },
     onSuccess: () => {
-      window.location.reload() // 🔄 Recharge pour refléter les changements de rôles
+      window.location.reload()
     },
     onError: (errors) => {
       console.error('Erreur de validation', errors)
@@ -125,13 +130,17 @@ function deleteUser(id) {
   if (!confirm('Supprimer définitivement cet utilisateur ?')) return
 
   router.delete(`/users/${id}`, {
-    onSuccess: () => {
-      window.location.reload()
-    },
-    onError: (error) => {
-      console.error('Erreur de suppression', error)
-    }
-  })
+  headers: {
+    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+  },
+  onSuccess: () => {
+    window.location.reload()
+  },
+  onError: (error) => {
+    console.error('Erreur de suppression', error)
+  }
+})
+
 }
 
 // Définition des colonnes du tableau

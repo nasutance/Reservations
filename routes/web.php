@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 
 // Importation des contrôleurs utilisés
 use App\Http\Controllers\{
@@ -21,7 +22,7 @@ use App\Http\Controllers\{
     UserController,
     VideoController
 };
-
+Route::middleware(['web'])->group(function () {
 // ====================
 // Flux RSS (package Spatie)
 // ====================
@@ -117,3 +118,4 @@ Route::middleware(['auth', 'can:create,App\Models\Show'])->group(function () {
 
 Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
 Route::get('/videos/by-artist/{name}', [VideoController::class, 'byArtist']);
+}); 
