@@ -58,14 +58,16 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { ref, reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { usePage, router, Link } from '@inertiajs/vue3'
 import Pagination from '@/Components/Pagination.vue'
 import ReserveButton from '@/Components/ReserveButton.vue'
 
+// Accès aux props renvoyées par le backend via Inertia //	Layouts complexes, props profondes, navigation dynamique, filtres
 const page = usePage()
-const shows = page.props.shows
-const user = page.props.auth.user
+
+// Computed qui garde les données "shows" à jour à chaque navigation Inertia
+const shows = computed(() => page.props.shows)
 const filters = reactive({
   q: page.props.filters.q || '',
   min_duration: page.props.filters.min_duration || '',
