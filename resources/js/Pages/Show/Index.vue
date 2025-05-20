@@ -26,6 +26,14 @@
           <option value="desc">Desc</option>
         </select>
 
+        <!-- Filtrage par mot-clé (tag) -->
+        <select v-model="filters.tag" class="input">
+          <option value="">-- Filtrer par mot-clé --</option>
+          <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+            {{ tag.tag }}
+          </option>
+        </select>
+
         <!-- Bouton pour appliquer les filtres -->
         <button type="submit" class="btn">Filtrer</button>
 
@@ -33,6 +41,18 @@
         <!-- Appelle reset(), qui vide tous les champs et relance la recherche -->
         <button @click.prevent="reset" class="btn">Réinitialiser</button>
       </form>
+
+      <!-- Liste des tags pour filtrer par exclusion -->
+      <div v-if="tags.length" class="mb-6">
+        <p class="font-semibold">Spectacles <span class="italic">sans</span> ces mots-clés :</p>
+        <ul class="flex gap-2 flex-wrap mt-2">
+          <li v-for="tag in tags" :key="tag.id">
+            <button @click="filterWithoutTag(tag.id)" class="text-red-600 hover:underline text-sm bg-red-100 px-2 py-1 rounded">
+              {{ tag.tag }}
+            </button>
+          </li>
+        </ul>
+      </div>
 
       <!-- Liste des spectacles -->
       <ul class="space-y-4">
@@ -77,15 +97,18 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { reactive, computed } from 'vue'
-import { usePage, router, Link } from '@inertiajs/vue3'
+import { usePage, router, Link } from '@inertiajs/vue3' 
 import Pagination from '@/Components/Pagination.vue'
 import ReserveButton from '@/Components/ReserveButton.vue'
 
-// Accès aux props renvoyées par le backend via Inertia
+// Accès aux props renvoyées par le backend via Inertia //	Layouts complexes, props profondes, navigation dynamique, filtres
 const page = usePage()
 
 // Computed qui garde les données "shows" à jour à chaque navigation Inertia
 const shows = computed(() => page.props.shows)
+
+// Liste des tags reçus du backend pour les filtres
+const tags = page.props.tags || []
 
 // Filtres réactifs, initialisés avec les valeurs passées par le backend (persistées dans l’URL)
 const filters = reactive({
@@ -95,6 +118,7 @@ const filters = reactive({
   postal_code: page.props.filters.postal_code || '',
   sort: page.props.filters.sort || '',
   direction: page.props.filters.direction || 'asc',
+  tag: page.props.filters.tag || '',
 })
 
 // Fonction appelée quand on soumet le formulaire
@@ -114,9 +138,21 @@ function reset() {
     max_duration: '',
     postal_code: '',
     sort: '',
-    direction: 'asc'
+    direction: 'asc',
+    tag: '',
   })
   filter()
+}
+
+// Filtre les spectacles n'ayant pas un tag donné
+function filterWithoutTag(tagId) {
+  router.get(route('show.index'), {
+    ...filters,
+    without_tag: tagId,
+  }, {
+    preserveScroll: true,
+    preserveState: true
+  })
 }
 </script>
 

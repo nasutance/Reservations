@@ -23,6 +23,24 @@
         <em>{{ show.bookable ? 'Réservable' : 'Non réservable' }}</em>
       </p>
 
+      <h2 class="mt-6 font-semibold">Mots-clés</h2>
+      <ul v-if="show.tags && show.tags.length" class="list-disc list-inside">
+        <li v-for="tag in show.tags" :key="tag.id">{{ tag.tag }}</li>
+      </ul>
+      <p v-else>Aucun mot-clé associé.</p>
+
+      <div v-if="user && user.role === 'admin'" class="mt-4">
+        <form @submit.prevent="submitTag">
+          <label for="tag_id" class="block font-semibold mb-1">Ajouter un mot-clé</label>
+          <select v-model="form.tag_id" id="tag_id" class="border p-2 rounded mb-2">
+            <option v-for="tag in allTags" :value="tag.id" :key="tag.id">
+              {{ tag.tag }}
+            </option>
+          </select>
+          <button type="submit" class="btn">Ajouter</button>
+        </form>
+      </div>
+
       <!-- Liste des représentations du spectacle -->
       <h2 class="mt-6 font-semibold">Liste des représentations</h2>
       <ul v-if="show.representations.length">
@@ -97,6 +115,7 @@
 </template>
 
 <script setup>
+
 // Import du layout principal
 import AppLayout from '@/Layouts/AppLayout.vue'
 
@@ -114,8 +133,11 @@ import { formatDate } from '@/utils/formatDate.js'
 
 // Récupération des props envoyées par le backend via Inertia
 const page = usePage()
-const show = page.props.show
+const show = computed(() => page.props.show)
 const user = page.props.auth.user
+const allTags = page.props.allTags
+const form = useForm({ tag_id: '' })
+
 
 // Traitement des artistes associés au spectacle par type
 // On trie les artistes dans un objet { auteur: [...], scénographe: [...], comédien: [...] }
@@ -127,7 +149,7 @@ const collaborateurs = computed(() => {
   }
 
   // Boucle sur les types d'artistes associés au spectacle
-  for (const at of show.artist_types ?? []) {
+  for (const at of show.value.artist_types ?? []) {
     const type = at.type?.type
     if (mapping[type]) {
       mapping[type].push(at.artist)
@@ -136,6 +158,14 @@ const collaborateurs = computed(() => {
 
   return mapping
 })
+
+function submitTag() {
+  form.post(route('show.attachTag', show.value.id), {
+    preserveScroll: true,
+    onSuccess: () => form.reset(),
+  })
+}
+
 </script>
 
 <style scoped>

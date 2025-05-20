@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Show;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -160,14 +161,29 @@ class ShowController extends Controller
             $query->orderBy($request->sort, $request->get('direction', 'asc'));
         }
 
+        // Filtres par tag
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', fn ($q) =>
+                $q->where('id', $request->tag)
+            );
+        }
+
+        // Exclure les spectacles avec certains tags
+        if ($request->filled('without_tag')) {
+            $query->whereDoesntHave('tags', fn ($q) =>
+                $q->where('tags.id', $request->without_tag)
+            );
+        }
+
         $query->withCount('representations'); // Pour afficher le nombre de représentations
 
         return Inertia::render('Show/Index', [
             'shows' => $query->paginate($request->get('per_page', 10))->withQueryString(),
             'filters' => $request->only([
                 'q', 'artist', 'location', 'postal_code',
-                'min_duration', 'max_duration', 'sort', 'direction'
+                'min_duration', 'max_duration', 'sort', 'direction', 'tag'
             ]),
+            'tags' => Tag::all(['id', 'tag']), // Pour les filtres côté Vue
         ]);
     }
 
@@ -181,10 +197,12 @@ class ShowController extends Controller
             'artistTypes.type',
             'representations.location',
             'location',
+            'tags'
         ])->findOrFail($id); // Retourne 404 si non trouvé
 
         return Inertia::render('Show/Show', [
             'show' => $show,
+            'allTags' => Tag::all(['id', 'tag']),
         ]);
     }
 
@@ -229,3 +247,4 @@ class ShowController extends Controller
         return Inertia::location('/dashboard');
     }
 }
+

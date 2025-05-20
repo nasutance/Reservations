@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     RepresentationController,
     ReservationController,
     DashboardController,
+    TagController,
     UserController
 };
 
@@ -84,6 +85,14 @@ Route::middleware('auth')->group(function () {
     // Supprimer une ligne d’une réservation
     Route::delete('/reservation/{reservation}/line/{representation}/{price}', [ReservationController::class, 'destroyLine']);
 });
+
+// ====================
+// Gestion des tags pour les spectacles (authentifié)
+// ====================
+Route::middleware(['auth'])->group(function () {
+    Route::post('/shows/{show}/tags', [TagController::class, 'attach'])->name('show.attachTag');
+});
+
 
 // ====================
 // Page de remerciement après une réservation (authentifié)
