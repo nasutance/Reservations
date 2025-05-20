@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Filament\Models\Contracts\HasName;
 
 // Le modèle User représente un utilisateur de l’application (membre, administrateur, affilié, etc.)
 // Il hérite d'Authenticatable pour intégrer le système d’authentification de Laravel
 // Il implémente MustVerifyEmail pour activer la vérification d'adresse e-mail
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, HasName
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes; 
     // HasApiTokens : pour l’auth via tokens (Sanctum)
@@ -82,14 +83,22 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasRole(string $role): bool
     {
-        return $this->roles->pluck('role')->contains($role);
+        return $this->roles()->where('role', $role)->exists();
     }
+    
 
     /**
      * Vérifie si l'utilisateur possède au moins un des rôles fournis
      */
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles->pluck('role')->intersect($roles)->isNotEmpty();
+        return $this->roles()->whereIn('role', $roles)->exists();
     }
+
+    public function getFilamentName(): string
+    {
+        return trim("{$this->firstname} {$this->lastname}") ?: $this->email;
+    }
+    
+
 }

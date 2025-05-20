@@ -17,9 +17,13 @@ class UserPolicy
      * @param User $user    L'utilisateur connecté (demandeur)
      * @param User $target  L'utilisateur ciblé (profil à consulter)
      * @return bool
-     *
+     * 
      * Autorisé si l'utilisateur consulte son propre profil ou s'il est administrateur.
      */
+    public function viewFilament(User $user)
+    {
+        return $user->hasRole('admin');
+    }
     public function view(User $user, User $target)
     {
         return $user->id === $target->id || $user->hasRole('admin');

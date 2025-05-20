@@ -79,7 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
 | Ces routes permettent d’importer des données XML ou CSV via un contrôleur.
 */
 
-Route::post('/import-localities',        [ImportExternalDataController::class, 'importLocalities']);
-Route::post('/import-locations',         [ImportExternalDataController::class, 'importLocations']);
-Route::post('/import-shows',             [ImportExternalDataController::class, 'importShows']);
-Route::post('/import-representations',   [ImportExternalDataController::class, 'importRepresentations']);
+//Route::post('/import-localities',        [ImportExternalDataController::class, 'importLocalities']);
+//Route::post('/import-locations',         [ImportExternalDataController::class, 'importLocations']);
+//Route::post('/import-shows',             [ImportExternalDataController::class, 'importShows']);
+//Route::post('/import-representations',   [ImportExternalDataController::class, 'importRepresentations']);
