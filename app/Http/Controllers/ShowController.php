@@ -197,7 +197,8 @@ class ShowController extends Controller
             'artistTypes.type',
             'representations.location',
             'location',
-            'tags'
+            'tags',
+            'videos'
         ])->findOrFail($id); // Retourne 404 si non trouvé
 
         return Inertia::render('Show/Show', [

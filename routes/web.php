@@ -113,3 +113,5 @@ Route::middleware(['auth', 'can:create,App\Models\Show'])->group(function () {
     Route::post('/shows/import', [ShowController::class, 'import'])->name('shows.import');
     Route::get('/shows/export', [ShowController::class, 'export'])->name('shows.export');
 });
+
+Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');

@@ -41,6 +41,35 @@
         </form>
       </div>
 
+      <!-- Liste des vidéos -->
+       <h2 class="mt-6 font-semibold">Vidéos</h2>
+       <div v-if="show.videos && show.videos.length">
+        <div v-for="video in show.videos" :key="video.id" class="mb-4">
+          <h3 class="text-lg font-semibold">{{ video.title }}</h3>
+          <iframe
+          class="w-full max-w-md"
+          height="315"
+          :src="video.video_url"
+          frameborder="0"
+          allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+      <p v-else>Aucune vidéo pour ce spectacle.</p>
+
+      <div v-if="user && user.role === 'admin'" class="mt-4">
+        <form @submit.prevent="submitVideo">
+          <label for="title" class="block font-semibold mb-1">Titre de la vidéo</label>
+          <input v-model="videoForm.title" type="text" class="border p-2 rounded mb-2 w-full" />
+
+          <label for="video_url" class="block font-semibold mb-1">URL (YouTube embed)</label>
+          <input v-model="videoForm.video_url" type="url" class="border p-2 rounded mb-2 w-full" />
+
+          <button type="submit" class="btn">Ajouter la vidéo</button>
+        </form>
+      </div>
+
+
       <!-- Liste des représentations du spectacle -->
       <h2 class="mt-6 font-semibold">Liste des représentations</h2>
       <ul v-if="show.representations.length">
@@ -158,6 +187,19 @@ const collaborateurs = computed(() => {
 
   return mapping
 })
+
+const videoForm = useForm({
+  title: '',
+  video_url: '',
+})
+
+function submitVideo() {
+  videoForm.post(route('videos.store'), {
+    preserveScroll: true,
+    onSuccess: () => videoForm.reset(),
+  })
+}
+
 
 function submitTag() {
   form.post(route('show.attachTag', show.value.id), {

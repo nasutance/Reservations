@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             RepresentationReservationSeeder::class,
             RoleUserSeeder::class,
             TagSeeder::class,
+            VideoSeeder::class,
         ]);
     }
 }

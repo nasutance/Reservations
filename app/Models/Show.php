@@ -86,9 +86,14 @@ class Show extends Model
         return $this->belongsToMany(Price::class);
     }
 
-    public function tags() {
+    public function tags() 
+    {
         return $this->belongsToMany(Tag::class);
-      }
-      
+    }
+
+    public function videos()
+    {
+        return $this->hasMany(Video::class);
+    }      
 
 }
