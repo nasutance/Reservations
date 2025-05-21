@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation, Location};
+use App\Models\{Reservation, User, Show, Price, Artist, Type, ArtistType, Representation, Location, Troupe};
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +39,7 @@ class DashboardController extends Controller
                 'locations' => Location::all(),
 
                 // Tous les artistes
-                'artists' => Artist::all(),
+                'artists' => Artist::with('troupe')->get(),
 
                 // Tous les types d'artistes avec les types et spectacles associés
                 'artistTypes' => ArtistType::with(['type', 'shows'])->get(),
@@ -55,6 +55,8 @@ class DashboardController extends Controller
 
                 // Tous les rôles
                 'roles' => \App\Models\Role::all(),
+
+                'troupes' => Troupe::select('id', 'name', 'logo_url')->get(),
 
                 // Indicateur de rôle administrateur (peut être utilisé en front)
                 'isAdmin' => true,

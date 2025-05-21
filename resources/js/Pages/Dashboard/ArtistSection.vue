@@ -34,15 +34,17 @@
       </option>
     </select>
   </div>
-  <div v-else-if="row.troupe" class="flex items-center gap-2">
-    <img
-      :src="row.troupe.logo_url"
-      class="w-6 h-6 rounded-full object-cover"
-      alt="Logo"
-    />
-    <span>{{ row.troupe.name }}</span>
-  </div>
-  <span v-else class="text-gray-400">—</span>
+  <div v-else-if="row.troupe && row.troupe.name" class="flex items-center gap-2">
+  <img
+    v-if="row.troupe.logo_url"
+    :src="`/images/${row.troupe.logo_url}`"
+    class="w-6 h-6 rounded-full object-cover"
+    alt="Logo"
+  />
+  <span>{{ row.troupe.name }}</span>
+</div>
+<span v-else class="text-gray-400">—</span>
+
 </template>
 
 
@@ -183,13 +185,16 @@ function hydrateLocalArtists() {
       selectedTypeIds: typeIds,
       selectedShowTypeMap: showMap,
       showsText,
+      troupe_id: artist.troupe_id ?? null,
       troupe: artist.troupe ? {
     name: artist.troupe.name,
     logo_url: artist.troupe.logo_url,
   } : null
     }
   })
+  console.log('ARTISTES HYDRATÉS', localArtists.value)
 }
+
 
 // Retourne true si l'artiste est en édition
 function isEditing(id) {
@@ -253,7 +258,7 @@ async function saveArtist(row) {
     }
   }
 
-  // 🧠 🔧 Correction : cast explicite des clés de type_id en Number
+  
   row.selectedShowTypeMap = Object.fromEntries(
     Object.entries(row.selectedShowTypeMap).map(([k, v]) => [Number(k), v])
   )

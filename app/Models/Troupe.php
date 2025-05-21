@@ -11,8 +11,9 @@ class Troupe extends Model
 {
     protected $fillable = ['name', 'logo_url'];
 
-    public function Artists()
+    public function artists()
     {
-        return $this->belongsTo(Artists::class);
+        return $this->hasMany(Artist::class);
     }
+    
 }

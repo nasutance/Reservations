@@ -29,7 +29,7 @@ class ArtistController extends Controller
         $types = \App\Models\Type::select('id', 'type')->get();
         $shows = \App\Models\Show::select('id', 'title')->get();
         $troupes = Troupe::select('id', 'name', 'logo_url')->get(); 
-    
+
         return Inertia::render('Artist/Index', [
             'artists' => $artists,
             'artistTypes' => $artistTypes,

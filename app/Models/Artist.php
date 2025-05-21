@@ -35,7 +35,7 @@ class Artist extends Model
      * Attributs modifiables en masse via des formulaires ou requêtes.
      * Attention : pour des raisons de sécurité, seuls les champs listés ici peuvent être mass-assignés.
      */
-    protected $fillable = ['firstname', 'lastname'];
+    protected $fillable = ['firstname', 'lastname','troupe_id'];
 
     /**
      * Table associée au modèle (utile si le nom n’est pas au pluriel par défaut).
@@ -68,8 +68,9 @@ class Artist extends Model
         return $this->hasMany(ArtistType::class);
     }
 
-    public function Troupes(): BelongsToMany
+    public function troupe()
     {
-        return $this->belongsToMany(Troupe::class);
+        return $this->belongsTo(Troupe::class);
     }
+    
 }

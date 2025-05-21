@@ -30,8 +30,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereLastname($value)
  * @mixin \Eloquent
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Troupe> $Troupes
- * @property-read int|null $troupes_count
+ * @property int|null $troupe_id
+ * @property-read \App\Models\Troupe|null $troupe
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereTroupeId($value)
  */
 	class Artist extends \Eloquent {}
 }
@@ -353,6 +354,8 @@ namespace App\Models{
  * @property string $logo_url
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Artist> $artists
+ * @property-read int|null $artists_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Troupe newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Troupe newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Troupe query()
