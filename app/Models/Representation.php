@@ -13,6 +13,29 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 // Le modèle Representation représente une date/heure précise pour un spectacle donné
+/**
+ * 
+ *
+ * @property int $id
+ * @property int|null $location_id
+ * @property int $show_id
+ * @property Carbon $schedule
+ * @property-read \App\Models\Location|null $location
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Price> $prices
+ * @property-read int|null $prices_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Reservation> $reservations
+ * @property-read int|null $reservations_count
+ * @property-read \App\Models\Show $show
+ * @method static \Database\Factories\RepresentationFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation whereLocationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation whereSchedule($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Representation whereShowId($value)
+ * @mixin \Eloquent
+ */
 class Representation extends Model implements Feedable // Intègre l'interface pour générer un flux RSS
 {
     use HasFactory;

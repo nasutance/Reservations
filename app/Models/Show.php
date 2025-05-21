@@ -11,6 +11,55 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Le modèle Show représente un spectacle (pièce de théâtre, performance, etc.)
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $poster_url
+ * @property int $duration
+ * @property string $created_in
+ * @property int|null $location_id
+ * @property bool $bookable
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArtistTypeShow> $artistTypeShow
+ * @property-read int|null $artist_type_show_count
+ * @property-read \App\Models\Location|null $location
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Price> $prices
+ * @property-read int|null $prices_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Representation> $representations
+ * @property-read int|null $representations_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Review> $reviews
+ * @property-read int|null $reviews_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Video> $videos
+ * @property-read int|null $videos_count
+ * @method static \Database\Factories\ShowFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereBookable($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereCreatedIn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereDuration($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereLocationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show wherePosterUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Show withoutTrashed()
+ * @mixin \Eloquent
+ */
 class Show extends Model
 {
     use HasFactory, SoftDeletes; // SoftDeletes permet de "supprimer" sans effacer de la base

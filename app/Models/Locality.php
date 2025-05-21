@@ -8,6 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // Déclaration du modèle Locality, représentant une localité
+/**
+ * 
+ *
+ * @property string $postal_code
+ * @property string $locality
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Location> $locations
+ * @property-read int|null $locations_count
+ * @method static \Database\Factories\LocalityFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Locality newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Locality newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Locality query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Locality whereLocality($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Locality wherePostalCode($value)
+ * @mixin \Eloquent
+ */
 class Locality extends Model
 {
     use HasFactory; // Permet d'utiliser les factories pour les tests ou les seeders

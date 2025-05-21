@@ -8,6 +8,32 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 // Le modèle Review représente un avis rédigé par un utilisateur à propos d’un spectacle
+/**
+ * 
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $show_id
+ * @property string $review
+ * @property int $stars
+ * @property int $validated
+ * @property string $created_at
+ * @property string|null $updated_at
+ * @property-read \App\Models\Show $show
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereReview($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereShowId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereStars($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Review whereValidated($value)
+ * @mixin \Eloquent
+ */
 class Review extends Model
 {
     use HasFactory; // Active les factories pour la génération de données fictives (tests, seeders)

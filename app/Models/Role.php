@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 // Le modèle Role représente un rôle attribué à un ou plusieurs utilisateurs (ex : admin, membre, critique, etc.)
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $role
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read int|null $users_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereRole($value)
+ * @mixin \Eloquent
+ */
 class Role extends Model
 {
     use HasFactory; // Permet de générer des instances de test avec des factories

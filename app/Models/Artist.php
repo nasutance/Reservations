@@ -10,6 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Classe Artist – représente un artiste (acteur, metteur en scène, etc.)
  * Cette classe est liée à la table 'artists' dans la base de données.
+ *
+ * @property int $id
+ * @property string $firstname
+ * @property string $lastname
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArtistType> $artistTypes
+ * @property-read int|null $artist_types_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Type> $types
+ * @property-read int|null $types_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereFirstname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Artist whereLastname($value)
+ * @mixin \Eloquent
  */
 class Artist extends Model
 {

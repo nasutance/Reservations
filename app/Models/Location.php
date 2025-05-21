@@ -9,6 +9,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // Le modèle Location représente un lieu (salle de spectacle, théâtre, etc.)
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $designation
+ * @property string $address
+ * @property string $locality_postal_code
+ * @property string|null $website
+ * @property string|null $phone
+ * @property-read \App\Models\Locality $locality
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Representation> $representations
+ * @property-read int|null $representations_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Show> $shows
+ * @property-read int|null $shows_count
+ * @method static \Database\Factories\LocationFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereDesignation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereLocalityPostalCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Location whereWebsite($value)
+ * @mixin \Eloquent
+ */
 class Location extends Model
 {
     use HasFactory; // Active la prise en charge des model factories pour les tests/seeders

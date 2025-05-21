@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 // Le modèle Type représente un métier ou une fonction artistique (ex : comédien, metteur en scène, scénographe, etc.)
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $type
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Artist> $artists
+ * @property-read int|null $artists_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Type newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Type newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Type query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Type whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Type whereType($value)
+ * @mixin \Eloquent
+ */
 class Type extends Model
 {
     use HasFactory; // Active les model factories pour les tests/seeders

@@ -9,8 +9,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Classe ArtistType – Représente l'association entre un artiste et un type (fonction).
+ * 
  * Ex. : "Daniel Marcelin est un scénographe"
  * C'est un modèle pivot entre les entités Artist et Type.
+ *
+ * @property int $id
+ * @property int $artist_id
+ * @property int $type_id
+ * @property-read \App\Models\Artist $artist
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArtistTypeShow> $artistTypeShow
+ * @property-read int|null $artist_type_show_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Show> $shows
+ * @property-read int|null $shows_count
+ * @property-read \App\Models\Type $type
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType whereArtistId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ArtistType whereTypeId($value)
+ * @mixin \Eloquent
  */
 class ArtistType extends Model
 {

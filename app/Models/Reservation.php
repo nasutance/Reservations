@@ -10,6 +10,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Le modèle Reservation représente une réservation faite par un utilisateur pour une ou plusieurs représentations
+/**
+ * 
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon $booking_date
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Representation> $representations
+ * @property-read int|null $representations_count
+ * @property-read \App\Models\User $user
+ * @method static \Database\Factories\ReservationFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereBookingDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reservation withoutTrashed()
+ * @mixin \Eloquent
+ */
 class Reservation extends Model
 {
     use HasFactory, SoftDeletes; // Permet d’utiliser les factories et la suppression "douce" (soft delete)
