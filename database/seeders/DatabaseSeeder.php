@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             RoleUserSeeder::class,
             TagSeeder::class,
             VideoSeeder::class,
+            TroupeSeeder::class,
         ]);
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Troupe;
 
 /**
  * Classe Artist – représente un artiste (acteur, metteur en scène, etc.)
@@ -65,5 +66,10 @@ class Artist extends Model
     public function artistTypes(): HasMany
     {
         return $this->hasMany(ArtistType::class);
+    }
+
+    public function Troupes(): BelongsToMany
+    {
+        return $this->belongsToMany(Troupe::class);
     }
 }

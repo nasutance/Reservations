@@ -15,8 +15,36 @@
           <input v-model="row.firstname" placeholder="Prénom" class="border px-2 py-1 rounded mr-1" />
           <input v-model="row.lastname" placeholder="Nom" class="border px-2 py-1 rounded" />
         </div>
-        <span v-else>{{ row.firstname }} {{ row.lastname }}</span>
+        <span v-else>{{ row.firstname }} {{ row.lastname }} </span>
       </template>
+
+<template #troupe="{ row }">
+  <div v-if="isEditing(row.id)">
+    <select
+      v-model="row.troupe_id"
+      class="border px-2 py-1 rounded w-full"
+    >
+      <option :value="null">— Aucune troupe —</option>
+      <option
+        v-for="troupe in troupes"
+        :key="troupe.id"
+        :value="troupe.id"
+      >
+        {{ troupe.name }}
+      </option>
+    </select>
+  </div>
+  <div v-else-if="row.troupe" class="flex items-center gap-2">
+    <img
+      :src="row.troupe.logo_url"
+      class="w-6 h-6 rounded-full object-cover"
+      alt="Logo"
+    />
+    <span>{{ row.troupe.name }}</span>
+  </div>
+  <span v-else class="text-gray-400">—</span>
+</template>
+
 
       <!-- Colonne "Types" : case à cocher si édition, sinon liste -->
       <template #types="{ row }">
@@ -108,6 +136,7 @@ const page = usePage()
 const types = ref(page.props.types ?? [])           // Liste des types d'artistes
 const shows = ref(page.props.shows ?? [])           // Liste des spectacles
 const artistTypes = ref(page.props.artistTypes ?? []) // Données pivot artist-type-show
+const troupes = ref(page.props.troupes ?? [])
 
 // Données locales pour gérer les artistes côté client
 const localArtists = ref([])
@@ -153,7 +182,11 @@ function hydrateLocalArtists() {
       lastname: artist.lastname,
       selectedTypeIds: typeIds,
       selectedShowTypeMap: showMap,
-      showsText
+      showsText,
+      troupe: artist.troupe ? {
+    name: artist.troupe.name,
+    logo_url: artist.troupe.logo_url,
+  } : null
     }
   })
 }
@@ -228,6 +261,7 @@ async function saveArtist(row) {
   await router[method](url, {
     firstname: row.firstname,
     lastname: row.lastname,
+    troupe_id: row.troupe_id,
     types: row.selectedTypeIds,
     shows: row.selectedShowTypeMap,
   }, {
@@ -265,6 +299,6 @@ function toggleShowSelection(row, typeId, showId, event) {
 }
 
 // Colonnes du tableau (affichage & correspondance des champs)
-const headers = ['Artiste', 'Types', 'Spectacles', 'Actions']
-const fields = ['fullname', 'types', 'shows', 'actions']
+const headers = ['Artiste', 'Types', 'Troupe','Spectacles', 'Actions']
+const fields = ['fullname', 'types','troupe', 'shows', 'actions']
 </script>

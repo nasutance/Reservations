@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Artist;
 use App\Models\ArtistType;
+use App\Models\Troupe;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
@@ -18,20 +19,26 @@ class ArtistController extends Controller
      */
     public function index()
     {
-        // Vérifie si l'utilisateur a le droit de voir tous les artistes
         $this->authorize('viewAny', Artist::class);
-
-        // Récupère tous les artistes avec leurs types et spectacles associés
-        $artists = Artist::with(['artistTypes.type', 'artistTypes.shows'])
-                         ->select('id', 'firstname', 'lastname')
+    
+        $artists = Artist::with(['artistTypes.type', 'artistTypes.shows', 'troupe'])
+                         ->select('id', 'firstname', 'lastname', 'troupe_id')
                          ->get();
-
-        // Affiche la vue Inertia Artist/Index avec les données des artistes
+    
+        $artistTypes = ArtistType::with(['type', 'shows'])->get();
+        $types = \App\Models\Type::select('id', 'type')->get();
+        $shows = \App\Models\Show::select('id', 'title')->get();
+        $troupes = Troupe::select('id', 'name', 'logo_url')->get(); 
+    
         return Inertia::render('Artist/Index', [
-            'artists' => $artists
+            'artists' => $artists,
+            'artistTypes' => $artistTypes,
+            'types' => $types,
+            'shows' => $shows,
+            'troupes' => $troupes, 
         ]);
     }
-
+    
     /**
      * Affiche le formulaire de création d’un artiste.
      */
@@ -52,6 +59,7 @@ class ArtistController extends Controller
         $validated = $request->validate([
             'firstname' => 'required|max:60',
             'lastname' => 'required|max:60',
+            'troupe_id' => 'nullable|exists:troupes,id',
             'types' => 'array', // tableau d’ID de types
             'types.*' => 'exists:types,id',
             'shows' => 'array', // tableau associatif type_id => [show_id,...]
@@ -63,6 +71,7 @@ class ArtistController extends Controller
         $artist = Artist::create([
             'firstname' => $validated['firstname'],
             'lastname' => $validated['lastname'],
+            'troupe_id' => $validated['troupe_id'] ?? null,
         ]);
 
         // Création des types et associations aux spectacles
@@ -85,13 +94,20 @@ class ArtistController extends Controller
      */
     public function show($id)
     {
-        $artist = Artist::findOrFail($id);
+        $artist = Artist::with('troupe')->findOrFail($id);
         $this->authorize('view', $artist);
 
         return Inertia::render('Artist/Show', [
-            'artist' => $artist
+            'artist' => [
+                'id' => $artist->id,
+                'name' => $artist->name,                
+                'troupe' => $artist->troupe ? [
+                    'name' => $artist->troupe->name,
+                    'logo_url' => $artist->troupe->logo_url,
+                ] : null,
+            ]
         ]);
-    }
+        }
 
     /**
      * Affiche le formulaire de modification d’un artiste.
@@ -114,6 +130,7 @@ class ArtistController extends Controller
         $validated = $request->validate([
             'firstname' => 'required',
             'lastname' => 'required',
+            'troupe_id' => 'nullable|exists:troupes,id',
             'types' => 'array',
             'types.*' => 'exists:types,id',
             'shows' => 'array',
@@ -124,8 +141,9 @@ class ArtistController extends Controller
         $artist->update([
             'firstname' => $validated['firstname'],
             'lastname' => $validated['lastname'],
+            'troupe_id' => $validated['troupe_id'] ?? null,
         ]);
-    
+        
         // Supprimer les anciens artistTypes (et leurs liens vers les shows via cascade)
         $artist->artistTypes()->delete();
     
