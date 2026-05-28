@@ -1,66 +1,180 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Reservations
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> A full-stack theatre ticketing web application built with **Laravel 11**, **Vue 3** and **Inertia.js**.
 
-## About Laravel
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-Pest_3-brightgreen)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Reservations** is a full-stack application for managing theatre shows and their online ticketing. Users can browse available shows, view upcoming performances, and complete a booking through a guided multi-step flow. Administrators have a dedicated dashboard to manage all content and a RESTful API secured with Sanctum tokens.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Features
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Public
+- Show catalogue with search and filters (keyword, artist, venue, duration, postal code)
+- Show detail page: poster, description, cast, upcoming performances
+- RSS feed of upcoming performances (Spatie Laravel Feed)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Authenticated users
+- Registration, login, email verification (Laravel Breeze)
+- Multi-step reservation flow:
+  1. Choose a performance
+  2. Select pricing tiers and number of seats
+  3. Choose delivery method
+  4. Payment (PayPal integration)
+  5. Confirmation
+- Personalised dashboard: booking history, reservation status
+- Reservation management: add pricing lines, cancel a booking
+- Profile management: update email, password, delete account
 
-## Laravel Sponsors
+### Administration
+- Full CRUD for shows, performances, artists, prices and venues
+- User management and role assignment (admin, affiliate, member)
+- CSV import / export for shows
+- RESTful API secured with Laravel Sanctum
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Tech stack
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+| Layer       | Technologies                                                      |
+|-------------|-------------------------------------------------------------------|
+| Backend     | PHP 8.2+, Laravel 11, Laravel Sanctum, Laravel Breeze            |
+| Frontend    | Vue 3, Inertia.js, Tailwind CSS 3, Vite                          |
+| Database    | SQLite (dev) / MySQL–MariaDB (prod), Eloquent ORM, Soft Deletes  |
+| Auth & ACL  | Laravel Breeze, resource Policies, role-based middleware          |
+| Extras      | Spatie Laravel Feed (RSS), Ziggy (client-side named routes)      |
+| Testing     | Pest 3, PHPUnit, DatabaseTransactions                             |
+| Deployment  | Docker (PHP 8.3-FPM)                                             |
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Architecture
 
-## Code of Conduct
+The app follows a **full-stack MVC** pattern with hybrid rendering via Inertia.js — no separate API calls for page navigation, no page reloads.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
+app/
+├── Http/
+│   ├── Controllers/        # Web controllers (Inertia::render) + API controllers (JsonResponse)
+│   └── Middleware/
+├── Models/                 # Eloquent models with relationships, soft deletes, casts, factories
+├── Policies/               # Per-resource authorisation (ShowPolicy, ReservationPolicy, …)
+└── Providers/
 
-## Security Vulnerabilities
+resources/js/
+├── Components/             # Reusable Vue 3 components (DataTable, Modal, Pagination, …)
+├── Layouts/                # AppLayout, AuthenticatedLayout, GuestLayout
+└── Pages/
+    ├── Dashboard/          # Admin & member dashboards
+    ├── Reservation/        # 5-step booking wizard
+    └── Show/               # Show catalogue & detail
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+database/
+├── factories/              # Model factories for all entities
+├── migrations/
+└── seeders/                # Full dataset for local development
+```
 
-## License
+Key patterns used:
+- **Inertia.js** — seamless SPA feel without a separate frontend codebase
+- **Laravel Policies** — granular, testable per-resource authorisation
+- **Eloquent relationships** — BelongsToMany, HasMany, SoftDeletes, eager loading
+- **Sanctum** — stateless token authentication for the `/api` endpoints
+- **Ziggy** — named Laravel routes available in Vue components (`route('show.index')`)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Getting started
+
+### Requirements
+
+- PHP 8.2+, Composer 2
+- Node.js 18+, npm
+- SQLite (default) or MySQL / MariaDB
+
+### Local setup
+
+```bash
+git clone https://github.com/nasutance/Reservations.git
+cd Reservations
+
+# PHP dependencies
+composer install
+
+# Environment
+cp .env.example .env
+php artisan key:generate
+
+# Database (SQLite by default)
+touch database/database.sqlite
+php artisan migrate --seed
+
+# JS dependencies & dev build
+npm install
+npm run dev
+
+# In a separate terminal
+php artisan serve
+```
+
+The app will be available at `http://localhost:8000`.
+
+### Docker
+
+```bash
+docker build -t reservations .
+docker run -p 8080:80 reservations
+```
+
+---
+
+## API
+
+A RESTful API is available under `/api` and secured with Laravel Sanctum.
+
+| Method | Endpoint                  | Description                     |
+|--------|---------------------------|---------------------------------|
+| GET    | `/api/shows`              | Paginated show list with filters|
+| POST   | `/api/shows`              | Create a show (admin)           |
+| GET    | `/api/shows/{id}`         | Show detail (with `?include=`)  |
+| PUT    | `/api/shows/{id}`         | Update a show (admin)           |
+| DELETE | `/api/shows/{id}`         | Delete a show (admin)           |
+| GET    | `/api/representations`    | List performances               |
+| GET    | `/api/reservations`       | List reservations (own / all)   |
+
+Authenticate by passing a Sanctum token in the `Authorization: Bearer <token>` header.
+
+---
+
+## Testing
+
+```bash
+php artisan test
+# or
+./vendor/bin/pest
+```
+
+Tests cover authentication, profile management, show CRUD (including authorisation), representation and reservation controllers, using `DatabaseTransactions` to keep the database clean between runs.
+
+---
+
+## Seeded accounts
+
+After running `php artisan migrate --seed`, two named accounts are available (roles are assigned randomly across all seeded users):
+
+| Login  | Email                    | Password   |
+|--------|--------------------------|------------|
+| bob    | `bob@sull.com`           | `12345678` |
+| anna   | `anna.lyse@sull.com`     | `12345678` |
+
+20 additional accounts are generated via factories.
