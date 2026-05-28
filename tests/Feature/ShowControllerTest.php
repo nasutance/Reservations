@@ -27,7 +27,9 @@ class ShowControllerTest extends TestCase
 {
 
     $user = User::factory()->create();
-    Sanctum::actingAs($user); // Même correction ici
+    $memberRole = Role::firstOrCreate(['role' => 'member']);
+    $user->roles()->attach($memberRole->id);
+    Sanctum::actingAs($user);
     DB::table('representation_reservation')->delete();
     DB::table('representations')->delete();
     DB::table('artist_type_show')->delete();
