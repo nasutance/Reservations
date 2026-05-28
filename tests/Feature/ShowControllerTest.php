@@ -41,7 +41,7 @@ class ShowControllerTest extends TestCase
     $response = $this->getJson('/api/shows');
 
     $response->assertStatus(200)
-             ->assertJsonCount(3);
+             ->assertJsonCount(3, 'data');
 }
 
 
