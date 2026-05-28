@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -49,8 +50,9 @@ class RegisteredUserController extends Controller
          $user->markEmailAsVerified();
 
          // 👇 Si personne n’est connecté ou que ce n’est pas un admin : rôle "membre" auto
-         if (!Auth::check() || !Auth::user()->roles()->where('role', 'admin')->exists()) {
-             $user->roles()->attach(2); // rôle "membre"
+         if (!Auth::check() || !Auth::user()->roles()->where(‘role’, ‘admin’)->exists()) {
+             $memberRole = Role::firstOrCreate([‘role’ => ‘member’]);
+             $user->roles()->attach($memberRole->id);
          }
 
          event(new Registered($user));
