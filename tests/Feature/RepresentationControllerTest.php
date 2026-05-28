@@ -55,7 +55,7 @@ Representation::query()->delete();
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['schedule' => '2024-05-01 20:00:00']);
+                 ->assertJson(['schedule' => '2024-05-01T20:00:00.000000Z']);
     }
 
     public function test_guest_cannot_create_a_representation()
