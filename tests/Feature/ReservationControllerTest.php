@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use App\Models\Location;
 use App\Models\Show;
 use App\Models\Representation;
@@ -20,7 +20,10 @@ class ReservationControllerTest extends TestCase
 
     private function createUser(): User
     {
-        return User::factory()->create();
+        $user = User::factory()->create();
+        $memberRole = Role::firstOrCreate(['role' => 'member']);
+        $user->roles()->attach($memberRole->id);
+        return $user;
     }
 
     public function test_user_can_make_a_reservation()
