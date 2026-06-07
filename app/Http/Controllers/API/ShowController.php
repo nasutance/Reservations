@@ -61,9 +61,12 @@ class ShowController extends Controller
             $query->where('duration', '<=', $request->max_duration);
         }
 
-        // ↕️ Tri dynamique
-        if ($request->has('sort')) {
-            $query->orderBy($request->query('sort'), $request->query('direction', 'asc'));
+        // ↕️ Tri dynamique (whitelist pour éviter l'injection de colonnes arbitraires)
+        $allowedSorts = ['title', 'duration', 'created_in'];
+        $sort = $request->query('sort');
+        if ($sort && in_array($sort, $allowedSorts, strict: true)) {
+            $direction = $request->query('direction', 'asc') === 'desc' ? 'desc' : 'asc';
+            $query->orderBy($sort, $direction);
         }
 
         // 📄 Résultat paginé (10 résultats par défaut)

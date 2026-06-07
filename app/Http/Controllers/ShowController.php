@@ -155,9 +155,12 @@ class ShowController extends Controller
             $query->where('duration', '<=', $request->max_duration);
         }
 
-        // Tri dynamique
-        if ($request->filled('sort')) {
-            $query->orderBy($request->sort, $request->get('direction', 'asc'));
+        // Tri dynamique (whitelist pour éviter l'injection de colonnes arbitraires)
+        $allowedSorts = ['title', 'duration', 'created_in'];
+        $sort = $request->get('sort');
+        if ($sort && in_array($sort, $allowedSorts, strict: true)) {
+            $direction = $request->get('direction', 'asc') === 'desc' ? 'desc' : 'asc';
+            $query->orderBy($sort, $direction);
         }
 
         $query->withCount('representations'); // Pour afficher le nombre de représentations
