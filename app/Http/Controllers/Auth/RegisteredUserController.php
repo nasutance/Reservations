@@ -30,40 +30,34 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-     public function store(Request $request): RedirectResponse
-     {
-         $request->validate([
-             'firstname' => ['required', 'string', 'max:255'],
-             'lastname' => ['required', 'string', 'max:255'],
-             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-         ]);
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'firstname' => ['required', 'string', 'max:255'],
+            'lastname'  => ['required', 'string', 'max:255'],
+            'email'     => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'password'  => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
 
-         $user = User::create([
-             'firstname' => $request->firstname,
-             'lastname' => $request->lastname,
-             'email' => $request->email,
-             'password' => Hash::make($request->password),
-         ]);
+        $user = User::create([
+            'firstname' => $request->firstname,
+            'lastname'  => $request->lastname,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
+        ]);
 
-         // 👇 Bypass vérification email (optionnel pour ton PID)
-         $user->markEmailAsVerified();
+        // Email marqué comme vérifié automatiquement
+        $user->markEmailAsVerified();
 
-         // 👇 Si personne n’est connecté ou que ce n’est pas un admin : rôle "membre" auto
-         if (!Auth::check() || !Auth::user()->roles()->where(‘role’, ‘admin’)->exists()) {
-             $memberRole = Role::firstOrCreate([‘role’ => ‘member’]);
-             $user->roles()->attach($memberRole->id);
-         }
+        // Si personne n'est connecté ou que ce n'est pas un admin : rôle "membre" auto
+        if (!Auth::check() || !Auth::user()->roles()->where('role', 'admin')->exists()) {
+            $memberRole = Role::firstOrCreate(['role' => 'member']);
+            $user->roles()->attach($memberRole->id);
+        }
 
-         event(new Registered($user));
-         Auth::login($user);
+        event(new Registered($user));
+        Auth::login($user);
 
-         return redirect()->route('dashboard');
-
-      //  event(new Registered($user));
-      //  $user->sendEmailVerificationNotification();
-
-
-    //   return redirect('verify-email')->with('status', 'Vous devez vérifier votre email avant de vous connecter.');
+        return redirect()->route('dashboard');
     }
 }
