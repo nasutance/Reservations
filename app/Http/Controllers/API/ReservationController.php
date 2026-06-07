@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreReservationRequest;
+use App\Http\Requests\Api\UpdateReservationRequest;
+use App\Http\Resources\ReservationResource;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Representation;
@@ -34,7 +37,7 @@ class ReservationController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        return response()->json($query->get(), 200);
+        return ReservationResource::collection($query->get());
     }
 
     /**
@@ -68,22 +71,15 @@ class ReservationController extends Controller
             ];
         });
 
-        return response()->json($reservation);
+        return new ReservationResource($reservation);
     }
 
     /**
      * Crée une réservation pour une représentation donnée (POST /api/reservations)
      */
-    public function store(Request $request)
+    public function store(StoreReservationRequest $request)
     {
-        $this->authorize('create', Reservation::class); // Vérification des droits
-
-        // Validation des données entrantes
-        $validated = $request->validate([
-            'representation_id' => 'required|exists:representations,id',
-            'price_id' => 'required|exists:prices,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+        $validated = $request->validated();
 
         // Vérification que la représentation existe
         $representation = Representation::find($validated['representation_id']);
@@ -120,13 +116,9 @@ class ReservationController extends Controller
     /**
      * Met à jour la quantité d’une représentation dans une réservation (PUT /api/reservations/{id})
      */
-    public function update(Request $request, $id)
+    public function update(UpdateReservationRequest $request, $id)
     {
-        // Validation des nouvelles données
-        $validated = $request->validate([
-            'representation_id' => 'required|exists:representations,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+        $validated = $request->validated();
 
         $reservation = Reservation::find($id);
         if (!$reservation) {

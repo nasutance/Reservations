@@ -47,7 +47,7 @@ class ReservationControllerTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['status' => 'en attente']);
+                 ->assertJson(['data' => ['status' => 'en attente']]);
     }
 
     public function test_guest_cannot_make_a_reservation()
@@ -74,6 +74,6 @@ class ReservationControllerTest extends TestCase
         $response = $this->getJson('/api/reservations');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1);
+                 ->assertJsonCount(1, 'data');
     }
 }

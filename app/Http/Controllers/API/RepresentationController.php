@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreRepresentationRequest;
+use App\Http\Requests\Api\UpdateRepresentationRequest;
+use App\Http\Resources\RepresentationResource;
 use Illuminate\Http\Request;
 use App\Models\Representation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -32,27 +35,17 @@ class RepresentationController extends Controller
         }
 
         // Retourne les représentations avec leurs relations 'show' et 'location'
-        return response()->json($query->with(['show', 'location'])->get(), 200);
+        return RepresentationResource::collection($query->with(['show', 'location'])->get());
     }
 
     /**
      * Enregistre une nouvelle représentation (POST /api/representations)
      */
-    public function store(Request $request)
+    public function store(StoreRepresentationRequest $request)
     {
-        $this->authorize('create', Representation::class); // Autorisation requise
+        $representation = Representation::create($request->validated());
 
-        // Validation des données reçues
-        $validated = $request->validate([
-            'schedule' => 'required|date',
-            'show_id' => 'required|integer|exists:shows,id',       // Doit correspondre à un spectacle existant
-            'location_id' => 'required|integer|exists:locations,id' // Doit correspondre à un lieu existant
-        ]);
-
-        // Création et enregistrement de la représentation
-        $representation = Representation::create($validated);
-
-        return response()->json($representation, 201); // Code 201 : ressource créée
+        return (new RepresentationResource($representation))->response()->setStatusCode(201);
     }
 
     /**
@@ -83,7 +76,7 @@ class RepresentationController extends Controller
     /**
      * Met à jour une représentation (PUT /api/representations/{id})
      */
-    public function update(Request $request, $id)
+    public function update(UpdateRepresentationRequest $request, $id)
     {
         $representation = Representation::find($id);
 
@@ -91,17 +84,9 @@ class RepresentationController extends Controller
             return response()->json(['message' => 'Représentation non trouvée'], 404);
         }
 
-        $this->authorize('update', $representation); // Vérifie l'autorisation
+        $this->authorize('update', $representation);
 
-        // Validation des champs éventuellement présents
-        $validated = $request->validate([
-            'schedule' => 'sometimes|date',
-            'show_id' => 'sometimes|integer|exists:shows,id',
-            'location_id' => 'sometimes|integer|exists:locations,id'
-        ]);
-
-        // Mise à jour
-        $representation->update($validated);
+        $representation->update($request->validated());
 
         return response()->json($representation, 200);
     }

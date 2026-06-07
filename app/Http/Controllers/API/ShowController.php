@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreShowRequest;
+use App\Http\Requests\Api\UpdateShowRequest;
+use App\Http\Resources\ShowResource;
 use Illuminate\Http\Request;
 use App\Models\Show;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -70,31 +73,16 @@ class ShowController extends Controller
         }
 
         // 📄 Résultat paginé (10 résultats par défaut)
-        return response()->json($query->paginate($request->get('per_page', 10)));
+        return ShowResource::collection($query->paginate($request->get('per_page', 10)));
     }
 
     /**
      * Enregistre un nouveau spectacle (POST /api/shows)
      */
-    public function store(Request $request)
+    public function store(StoreShowRequest $request)
     {
-        $this->authorize('create', Show::class); // Vérifie les droits
-
-        // Validation des champs requis
-        $validated = $request->validate([
-            'slug' => 'required|string|unique:shows,slug|max:255',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'poster_url' => 'nullable|url',
-            'duration' => 'required|integer|min:1',
-            'created_in' => 'required|integer|min:1800|max:' . date('Y'),
-            'location_id' => 'required|exists:locations,id',
-            'bookable' => 'required|boolean'
-        ]);
-
-        // Création de l'entité spectacle
-        $show = Show::create($validated);
-        return response()->json($show, 201);
+        $show = Show::create($request->validated());
+        return (new ShowResource($show))->response()->setStatusCode(201);
     }
 
     /**
@@ -128,34 +116,21 @@ class ShowController extends Controller
             unset($show->artistTypes); // Nettoyage pour ne pas dupliquer les données
         }
 
-        return response()->json($show, 200);
+        return new ShowResource($show);
     }
 
     /**
      * Met à jour un spectacle existant (PUT /api/shows/{id})
      */
-    public function update(Request $request, $id)
+    public function update(UpdateShowRequest $request, $id)
     {
         $show = Show::find($id);
         if (!$show) return response()->json(['message' => 'Spectacle non trouvé'], 404);
 
-        $this->authorize('update', $show); // Vérifie les droits
+        $this->authorize('update', $show);
 
-        // Validation souple (champs optionnels)
-        $validated = $request->validate([
-            'slug' => 'sometimes|string|unique:shows,slug,' . $id . '|max:255',
-            'title' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'poster_url' => 'nullable|url',
-            'duration' => 'sometimes|integer|min:1',
-            'created_in' => 'sometimes|integer|min:1800|max:' . date('Y'),
-            'location_id' => 'sometimes|integer|exists:locations,id',
-            'bookable' => 'sometimes|boolean'
-        ]);
-
-        // Mise à jour
-        $show->update($validated);
-        return response()->json($show, 200);
+        $show->update($request->validated());
+        return new ShowResource($show);
     }
 
     /**

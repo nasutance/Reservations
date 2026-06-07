@@ -64,7 +64,7 @@ class ShowControllerTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['title' => 'New Show']);
+                 ->assertJson(['data' => ['title' => 'New Show']]);
     }
 
     public function test_guest_cannot_create_a_show()

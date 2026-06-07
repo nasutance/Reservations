@@ -37,7 +37,7 @@ Representation::query()->delete();
       $response = $this->getJson('/api/representations');
 
       $response->assertStatus(200)
-               ->assertJsonCount(5);
+               ->assertJsonCount(5, 'data');
   }
 
     public function test_admin_can_create_a_representation()
@@ -55,7 +55,7 @@ Representation::query()->delete();
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['schedule' => '2024-05-01T20:00:00.000000Z']);
+                 ->assertJson(['data' => ['schedule' => '2024-05-01T20:00:00.000000Z']]);
     }
 
     public function test_guest_cannot_create_a_representation()
