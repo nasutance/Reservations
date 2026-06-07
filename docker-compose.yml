@@ -1,0 +1,54 @@
+services:
+
+  # ─── Application Laravel ───────────────────────────────────────────────────
+  app:
+    build: .
+    ports:
+      - "8000:80"
+    volumes:
+      # Monte le code source local dans le container (modifications en temps réel)
+      - .:/var/www
+      # Volume séparé pour vendor/ afin de ne pas écraser ce que Composer a installé
+      - vendor:/var/www/vendor
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: reservations
+      DB_USERNAME: reservations
+      DB_PASSWORD: secret
+    # Lance composer install + migrations + serveur PHP au démarrage
+    command: >
+      sh -c "composer install --prefer-dist --no-interaction &&
+             php artisan key:generate --no-interaction --force &&
+             php artisan migrate --force &&
+             php artisan db:seed --force &&
+             php -S 0.0.0.0:80 -t public"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  # ─── Base de données MySQL ──────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: reservations
+      MYSQL_USER: reservations
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      # Port 3306 exposé pour pouvoir se connecter avec TablePlus/DBeaver si besoin
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  vendor:
