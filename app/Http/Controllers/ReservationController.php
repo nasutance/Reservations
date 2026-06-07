@@ -256,7 +256,9 @@ class ReservationController extends Controller
      */
     public function destroyLine(Reservation $reservation, Representation $representation, $priceId)
     {
-        DB::table('representation_reservation')
+        $this->authorize(‘delete’, $reservation); // Seul le propriétaire peut modifier sa réservation
+
+        DB::table(‘representation_reservation’)
             ->where('reservation_id', $reservation->id)
             ->where('representation_id', $representation->id)
             ->where('price_id', $priceId)
