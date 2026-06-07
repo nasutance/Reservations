@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Representation;
 
 // Importation des contrôleurs utilisés
 use App\Http\Controllers\{
@@ -28,7 +29,15 @@ Route::feeds();
 // ====================
 // Page d’accueil (publique)
 // ====================
-Route::get('/', fn () => Inertia::render('Home'));
+Route::get('/', function () {
+    $upcoming = Representation::with(['show', 'location'])
+        ->where('schedule', '>=', now())
+        ->orderBy('schedule')
+        ->take(6)
+        ->get();
+
+    return Inertia::render('Home', ['upcoming' => $upcoming]);
+});
 
 // ====================
 // Tableau de bord (accessible uniquement aux utilisateurs authentifiés et vérifiés)
