@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Price;
 use App\Models\Representation;
 use App\Models\Reservation;
-use App\Models\Price;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RepresentationReservationSeeder extends Seeder
 {
@@ -16,29 +17,33 @@ class RepresentationReservationSeeder extends Seeder
     public function run(): void
     {
         // Vider la table avant de la remplir
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         DB::table('representation_reservation')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         $data = [];
 
         // Vérifier les données nécessaires
         $reservations = Reservation::all();
-        $representations = Representation::where('schedule', '2012-10-12 20:30')->get();
+        // Les deux prochaines représentations programmées (dates relatives au seed)
+        $representations = Representation::orderBy('schedule')->take(2)->get();
         $prices = Price::all();
 
         if ($reservations->isEmpty()) {
             $this->command->warn('Aucune réservation disponible. Seeder annulé.');
+
             return;
         }
 
         if ($representations->isEmpty()) {
             $this->command->warn('Aucune représentation disponible avec l\'horaire spécifié. Seeder annulé.');
+
             return;
         }
 
         if ($prices->isEmpty()) {
             $this->command->warn('Aucun prix disponible. Seeder annulé.');
+
             return;
         }
 

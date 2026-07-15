@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use App\Models\Review;
-use App\Models\User; 
 use App\Models\Show;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class ReviewSeeder extends Seeder
 {
@@ -16,9 +16,9 @@ class ReviewSeeder extends Seeder
     public function run(): void
     {
         // Vide la table avant d'insérer de nouvelles données
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         Review::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         // Données fictives pour les avis
         $reviews = [

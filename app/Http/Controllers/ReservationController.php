@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reservation;
 use App\Models\Representation;
+use App\Models\Reservation;
 use App\Models\Show;
-use App\Models\Price;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class ReservationController extends Controller
 {
@@ -48,7 +47,7 @@ class ReservationController extends Controller
         ]);
 
         $representation = Representation::find($validated['representation_id']);
-        if (!$representation) {
+        if (! $representation) {
             return redirect()->back()->withErrors(['representation_id' => 'Représentation introuvable.']);
         }
 
@@ -57,9 +56,9 @@ class ReservationController extends Controller
         // Vérifie si tous les tarifs sont bien valides pour le spectacle
         foreach ($validated['quantities'] as $line) {
             $allowed = $show->prices()->where('id', $line['price_id'])->exists();
-            if (!$allowed) {
+            if (! $allowed) {
                 return redirect()->back()->withErrors([
-                    'quantities' => "Le tarif sélectionné (#{$line['price_id']}) n'est pas valable pour ce spectacle."
+                    'quantities' => "Le tarif sélectionné (#{$line['price_id']}) n'est pas valable pour ce spectacle.",
                 ]);
             }
         }
@@ -97,7 +96,7 @@ class ReservationController extends Controller
             : $user->reservations()->with(['representations.show']);
 
         return Inertia::render('Dashboard/Dashboard', [
-            'reservations' => $query->get()
+            'reservations' => $query->get(),
         ]);
     }
 
@@ -134,6 +133,8 @@ class ReservationController extends Controller
      */
     public function update(Request $request, Reservation $reservation)
     {
+        $this->authorize('update', $reservation);
+
         $user = Auth::user();
 
         // ADMIN : modification complète autorisée
@@ -152,7 +153,9 @@ class ReservationController extends Controller
                         ->where('quantity', $rep['original_quantity'] ?? $rep['quantity'])
                         ->first();
 
-                    if (!$current) continue;
+                    if (! $current) {
+                        continue;
+                    }
 
                     // Mise à jour conditionnelle
                     if ($rep['quantity'] != $current->quantity) {
@@ -176,11 +179,7 @@ class ReservationController extends Controller
             return Inertia::location('/dashboard');
         }
 
-        // UTILISATEUR : peut seulement modifier le statut si propriétaire
-        if ($user->id !== $reservation->user_id) {
-            return response()->json(['error' => 'Non autorisé'], 403);
-        }
-
+        // UTILISATEUR : peut seulement modifier le statut de sa propre réservation
         $validated = $request->validate([
             'status' => 'required|string|in:en attente,payée,annulée',
         ]);
@@ -192,20 +191,6 @@ class ReservationController extends Controller
         return response()->json([
             'redirect' => route('reservation.thanks'),
         ]);
-        
-
-        
-    }
-
-    /**
-     * Restaure une réservation supprimée (soft delete).
-     */
-    public function restore($id)
-    {
-        $reservation = Reservation::withTrashed()->findOrFail($id);
-        $reservation->restore();
-
-        return Inertia::location('/dashboard');
     }
 
     /**
@@ -213,19 +198,15 @@ class ReservationController extends Controller
      */
     public function addLine(Request $request, Reservation $reservation)
     {
+        $this->authorize('update', $reservation);
+
         $request->validate([
             'price_id' => 'required|exists:prices,id',
         ]);
 
-        $user = Auth::user();
-
-        if (!$user->hasRole('admin') && $user->id !== $reservation->user_id) {
-            abort(403);
-        }
-
         $representationId = $reservation->representations->first()->id ?? null;
 
-        if (!$representationId) {
+        if (! $representationId) {
             return redirect()->back()->withErrors(['representation_id' => 'Impossible de trouver une représentation pour cette réservation.']);
         }
 
@@ -256,9 +237,9 @@ class ReservationController extends Controller
      */
     public function destroyLine(Reservation $reservation, Representation $representation, $priceId)
     {
-        $this->authorize(‘delete’, $reservation); // Seul le propriétaire peut modifier sa réservation
+        $this->authorize('update', $reservation);
 
-        DB::table(‘representation_reservation’)
+        DB::table('representation_reservation')
             ->where('reservation_id', $reservation->id)
             ->where('representation_id', $representation->id)
             ->where('price_id', $priceId)

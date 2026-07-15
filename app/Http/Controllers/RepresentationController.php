@@ -3,32 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Representation;
-use App\Models\Show;
-use App\Models\Location;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class RepresentationController extends Controller
 {
     use AuthorizesRequests; // Mixin Laravel pour activer la gestion des autorisations (policies)
-
-    /**
-     * Affiche la liste des représentations dans le tableau de bord.
-     * Utilise les relations Eloquent pour inclure les données du spectacle et du lieu.
-     * Vérifie que l'utilisateur a le droit de consulter les représentations.
-     */
-    public function index()
-    {
-        $this->authorize('viewAny', Representation::class); // Vérifie les droits (policy)
-
-        return Inertia::render('Dashboard/Dashboard', [
-            'representations' => Representation::with(['show', 'location'])->get(), // Chargement eager
-            'shows' => Show::all(),           // Liste des spectacles pour formulaires
-            'locations' => Location::all(),   // Liste des lieux pour formulaires
-        ]);
-    }
 
     /**
      * Enregistre une nouvelle représentation en base de données.

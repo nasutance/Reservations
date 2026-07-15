@@ -2,16 +2,15 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\Role;
-use App\Models\User;
 use App\Models\Location;
-use App\Models\Show;
+use App\Models\Price;
 use App\Models\Representation;
 use App\Models\Reservation;
-use App\Models\Price;
-use Laravel\Sanctum\Sanctum;
+use App\Models\Role;
+use App\Models\Show;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ReservationControllerTest extends TestCase
@@ -23,6 +22,7 @@ class ReservationControllerTest extends TestCase
         $user = User::factory()->create();
         $memberRole = Role::firstOrCreate(['role' => 'member']);
         $user->roles()->attach($memberRole->id);
+
         return $user;
     }
 
@@ -47,7 +47,7 @@ class ReservationControllerTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['data' => ['status' => 'en attente']]);
+            ->assertJson(['data' => ['status' => 'en attente']]);
     }
 
     public function test_guest_cannot_make_a_reservation()
@@ -74,6 +74,6 @@ class ReservationControllerTest extends TestCase
         $response = $this->getJson('/api/reservations');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1, 'data');
+            ->assertJsonCount(1, 'data');
     }
 }

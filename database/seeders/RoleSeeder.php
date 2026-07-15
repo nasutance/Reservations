@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Role;
+use Illuminate\Support\Facades\Schema;
 
 class RoleSeeder extends Seeder
 {
@@ -14,29 +14,29 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-      //Empty the table first
-      DB::statement('SET FOREIGN_KEY_CHECKS=0');
-      Role::truncate();
-      DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        //Empty the table first
+        Schema::disableForeignKeyConstraints();
+        Role::truncate();
+        Schema::enableForeignKeyConstraints();
 
-      //Define data
-      $data =
-      [
+        //Define data
+        $data =
         [
-          'role'=>'admin',
-        ],
-        [
-          'role'=>'member',
-        ],
-        [
-          'role'=>'affiliate',
-        ],
-        [
-          'role'=>'press',
-        ],
-      ];
+            [
+                'role' => 'admin',
+            ],
+            [
+                'role' => 'member',
+            ],
+            [
+                'role' => 'affiliate',
+            ],
+            [
+                'role' => 'press',
+            ],
+        ];
 
-      //Insert data in the table
-      DB::table('roles')->insert($data);
+        //Insert data in the table
+        DB::table('roles')->insert($data);
     }
 }

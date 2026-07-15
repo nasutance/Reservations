@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreReservationRequest;
 use App\Http\Requests\Api\UpdateReservationRequest;
 use App\Http\Resources\ReservationResource;
-use Illuminate\Http\Request;
-use App\Models\Reservation;
-use App\Models\Representation;
 use App\Models\Price;
+use App\Models\Representation;
+use App\Models\Reservation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
@@ -49,7 +49,7 @@ class ReservationController extends Controller
         // Chargement de la réservation avec les relations nécessaires
         $reservation = Reservation::with('representations.show')->find($id);
 
-        if (!$reservation) {
+        if (! $reservation) {
             return response()->json(['message' => 'Réservation introuvable.'], 404);
         }
 
@@ -83,7 +83,7 @@ class ReservationController extends Controller
 
         // Vérification que la représentation existe
         $representation = Representation::find($validated['representation_id']);
-        if (!$representation) {
+        if (! $representation) {
             return response()->json(['message' => 'Représentation non trouvée.'], 404);
         }
 
@@ -93,7 +93,7 @@ class ReservationController extends Controller
         $isSpecialPrice = Price::find($validated['price_id'])->is_special ?? false;
 
         // Si le prix n’est pas lié au spectacle ni spécial, on refuse
-        if (!$validPriceForShow && !$isSpecialPrice) {
+        if (! $validPriceForShow && ! $isSpecialPrice) {
             return response()->json(['message' => 'Ce prix n’est pas valide pour ce spectacle.'], 400);
         }
 
@@ -106,11 +106,13 @@ class ReservationController extends Controller
         // Association avec la représentation (pivot : quantity, price_id)
         $reservation->representations()->attach($validated['representation_id'], [
             'price_id' => $validated['price_id'],
-            'quantity' => $validated['quantity']
+            'quantity' => $validated['quantity'],
         ]);
 
-        // Retourne la réservation avec les données utiles
-        return response()->json($reservation->load('representations.show'), 201);
+        // Retourne la réservation avec les données utiles (format API Resource)
+        return ReservationResource::make($reservation->load('representations.show'))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -121,20 +123,20 @@ class ReservationController extends Controller
         $validated = $request->validated();
 
         $reservation = Reservation::find($id);
-        if (!$reservation) {
+        if (! $reservation) {
             return response()->json(['message' => 'Réservation introuvable.'], 404);
         }
 
         $this->authorize('update', $reservation); // Vérifie les droits
 
         // Vérifie que la représentation est bien liée à cette réservation
-        if (!$reservation->representations()->where('representation_id', $validated['representation_id'])->exists()) {
+        if (! $reservation->representations()->where('representation_id', $validated['representation_id'])->exists()) {
             return response()->json(['message' => 'Cette représentation n’est pas liée à cette réservation.'], 400);
         }
 
         // Mise à jour du pivot (quantité uniquement)
         $reservation->representations()->updateExistingPivot($validated['representation_id'], [
-            'quantity' => $validated['quantity']
+            'quantity' => $validated['quantity'],
         ]);
 
         // Renvoie la réservation avec les données du pivot mises à jour
@@ -150,7 +152,7 @@ class ReservationController extends Controller
     {
         $reservation = Reservation::find($id);
 
-        if (!$reservation) {
+        if (! $reservation) {
             return response()->json(['message' => 'Réservation introuvable.'], 404);
         }
 

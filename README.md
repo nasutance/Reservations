@@ -1,12 +1,12 @@
-# Reservations
+# Reservations 🎭
 
 > A full-stack theatre ticketing web application built with **Laravel 11**, **Vue 3** and **Inertia.js**.
 
+[![CI](https://github.com/nasutance/Reservations/actions/workflows/ci.yml/badge.svg)](https://github.com/nasutance/Reservations/actions/workflows/ci.yml)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)
 ![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-Pest_3-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 
 ---
@@ -14,6 +14,16 @@
 ## Overview
 
 **Reservations** is a full-stack application for managing theatre shows and their online ticketing. Users can browse available shows, view upcoming performances, and complete a booking through a guided multi-step flow. Administrators have a dedicated dashboard to manage all content and a RESTful API secured with Sanctum tokens.
+
+## Screenshots
+
+| Home | Show catalogue |
+|------|----------------|
+| ![Home page](docs/screenshots/home.png) | ![Catalogue](docs/screenshots/catalogue.png) |
+
+| Show detail | Admin dashboard |
+|-------------|-----------------|
+| ![Show detail](docs/screenshots/show-detail.png) | ![Admin dashboard](docs/screenshots/dashboard.png) |
 
 ---
 
@@ -30,14 +40,14 @@
   1. Choose a performance
   2. Select pricing tiers and number of seats
   3. Choose delivery method
-  4. Payment (PayPal integration)
+  4. Payment (PayPal sandbox integration)
   5. Confirmation
 - Personalised dashboard: booking history, reservation status
 - Reservation management: add pricing lines, cancel a booking
-- Profile management: update email, password, delete account
+- Profile management: update email, password, delete account (soft delete)
 
 ### Administration
-- Full CRUD for shows, performances, artists, prices and venues
+- Full CRUD for shows, performances, artists and prices from a single dashboard
 - User management and role assignment (admin, affiliate, member)
 - CSV import / export for shows
 - RESTful API secured with Laravel Sanctum
@@ -51,10 +61,10 @@
 | Backend     | PHP 8.2+, Laravel 11, Laravel Sanctum, Laravel Breeze            |
 | Frontend    | Vue 3, Inertia.js, Tailwind CSS 3, Vite                          |
 | Database    | SQLite (dev) / MySQL–MariaDB (prod), Eloquent ORM, Soft Deletes  |
-| Auth & ACL  | Laravel Breeze, resource Policies, role-based middleware          |
+| Auth & ACL  | Laravel Breeze, resource Policies, role-based access             |
 | Extras      | Spatie Laravel Feed (RSS), Ziggy (client-side named routes)      |
 | Testing     | Pest 3, PHPUnit, DatabaseTransactions                             |
-| Deployment  | Docker (PHP 8.3-FPM)                                             |
+| Tooling     | Docker Compose, GitHub Actions CI, Laravel Pint                   |
 
 ---
 
@@ -65,10 +75,12 @@ The app follows a **full-stack MVC** pattern with hybrid rendering via Inertia.j
 ```
 app/
 ├── Http/
-│   ├── Controllers/        # Web controllers (Inertia::render) + API controllers (JsonResponse)
-│   └── Middleware/
-├── Models/                 # Eloquent models with relationships, soft deletes, casts, factories
-├── Policies/               # Per-resource authorisation (ShowPolicy, ReservationPolicy, …)
+│   ├── Controllers/        # Web controllers (Inertia::render)
+│   │   └── API/            # API controllers (Form Requests + API Resources)
+│   ├── Requests/           # Validation extracted into Form Request classes
+│   └── Resources/          # JSON transformation layer for the API
+├── Models/                 # Eloquent models with relationships, soft deletes, casts
+├── Policies/               # Per-resource authorisation (Show, Reservation, Price, User, …)
 └── Providers/
 
 resources/js/
@@ -82,27 +94,36 @@ resources/js/
 database/
 ├── factories/              # Model factories for all entities
 ├── migrations/
-└── seeders/                # Full dataset for local development
+└── seeders/                # Full demo dataset (portable: SQLite & MySQL)
 ```
 
 Key patterns used:
 - **Inertia.js** — seamless SPA feel without a separate frontend codebase
-- **Laravel Policies** — granular, testable per-resource authorisation
-- **Eloquent relationships** — BelongsToMany, HasMany, SoftDeletes, eager loading
-- **Sanctum** — stateless token authentication for the `/api` endpoints
+- **Laravel Policies** — every write endpoint (web & API) goes through a policy; roles alone are never trusted
+- **Form Requests & API Resources** — validation and JSON shaping extracted out of the API controllers
+- **Eloquent relationships** — BelongsToMany with pivot data (price, quantity), HasMany, SoftDeletes, eager loading
+- **Sanctum** — token authentication for the `/api` endpoints
 - **Ziggy** — named Laravel routes available in Vue components (`route('show.index')`)
 
 ---
 
 ## Getting started
 
-### Requirements
+### Option 1 — Docker (recommended)
 
-- PHP 8.2+, Composer 2
-- Node.js 18+, npm
-- SQLite (default) or MySQL / MariaDB
+```bash
+git clone https://github.com/nasutance/Reservations.git
+cd Reservations
+cp .env.example .env
 
-### Local setup
+docker compose up -d
+```
+
+The stack (PHP app + MySQL) starts, installs dependencies, migrates and seeds the database automatically. The app is available at `http://localhost:8000`.
+
+### Option 2 — Local PHP
+
+Requirements: PHP 8.2+, Composer 2, Node.js 18+, npm.
 
 ```bash
 git clone https://github.com/nasutance/Reservations.git
@@ -119,22 +140,25 @@ php artisan key:generate
 touch database/database.sqlite
 php artisan migrate --seed
 
-# JS dependencies & dev build
+# Frontend
 npm install
-npm run dev
+npm run build     # or `npm run dev` for hot reload
 
-# In a separate terminal
 php artisan serve
 ```
 
 The app will be available at `http://localhost:8000`.
 
-### Docker
+### Demo accounts
 
-```bash
-docker build -t reservations .
-docker run -p 8080:80 reservations
-```
+After seeding, two demo accounts are available:
+
+| Login | Email                  | Password   | Roles         |
+|-------|------------------------|------------|---------------|
+| bob   | `bob@sull.com`         | `12345678` | admin, member |
+| anna  | `anna.lyse@sull.com`   | `12345678` | member        |
+
+20 additional accounts are generated via factories with random roles.
 
 ---
 
@@ -142,8 +166,16 @@ docker run -p 8080:80 reservations
 
 A RESTful API is available under `/api` and secured with Laravel Sanctum.
 
+```bash
+# Get a token
+curl -X POST http://localhost:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "bob@sull.com", "password": "12345678"}'
+```
+
 | Method | Endpoint                  | Description                     |
 |--------|---------------------------|---------------------------------|
+| POST   | `/api/login`              | Get a Sanctum token             |
 | GET    | `/api/shows`              | Paginated show list with filters|
 | POST   | `/api/shows`              | Create a show (admin)           |
 | GET    | `/api/shows/{id}`         | Show detail (with `?include=`)  |
@@ -151,12 +183,15 @@ A RESTful API is available under `/api` and secured with Laravel Sanctum.
 | DELETE | `/api/shows/{id}`         | Delete a show (admin)           |
 | GET    | `/api/representations`    | List performances               |
 | GET    | `/api/reservations`       | List reservations (own / all)   |
+| POST   | `/api/reservations`       | Book a performance              |
 
-Authenticate by passing a Sanctum token in the `Authorization: Bearer <token>` header.
+Authenticate by passing the token in the `Authorization: Bearer <token>` header.
 
 ---
 
 ## Testing
+
+65 feature tests cover authentication, profile management, authorisation policies (shows, reservations, prices, users), the reservation flow and the REST API.
 
 ```bash
 php artisan test
@@ -164,17 +199,10 @@ php artisan test
 ./vendor/bin/pest
 ```
 
-Tests cover authentication, profile management, show CRUD (including authorisation), representation and reservation controllers, using `DatabaseTransactions` to keep the database clean between runs.
+Tests run on every push via [GitHub Actions](.github/workflows/ci.yml) against PHP 8.2 and 8.3 with MySQL.
 
 ---
 
-## Seeded accounts
+## License
 
-After running `php artisan migrate --seed`, two named accounts are available (roles are assigned randomly across all seeded users):
-
-| Login  | Email                    | Password   |
-|--------|--------------------------|------------|
-| bob    | `bob@sull.com`           | `12345678` |
-| anna   | `anna.lyse@sull.com`     | `12345678` |
-
-20 additional accounts are generated via factories.
+Released under the [MIT License](LICENSE).

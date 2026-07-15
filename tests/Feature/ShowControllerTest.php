@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Location;
+use App\Models\Role;
 use App\Models\Show;
 use App\Models\User;
-use App\Models\Role;
-use App\Models\Location;
-use Laravel\Sanctum\Sanctum;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ShowControllerTest extends TestCase
@@ -20,30 +20,30 @@ class ShowControllerTest extends TestCase
         $user = User::factory()->create();
         $adminRole = Role::firstOrCreate(['role' => 'admin']);
         $user->roles()->attach($adminRole->id);
+
         return $user;
     }
 
     public function test_user_can_get_all_shows()
-{
+    {
 
-    $user = User::factory()->create();
-    $memberRole = Role::firstOrCreate(['role' => 'member']);
-    $user->roles()->attach($memberRole->id);
-    Sanctum::actingAs($user);
-    DB::table('representation_reservation')->delete();
-    DB::table('representations')->delete();
-    DB::table('artist_type_show')->delete();
-    DB::table('price_show')->delete();
-    DB::table('reviews')->delete();
-    Show::query()->delete();
-    Show::factory()->count(3)->create();
+        $user = User::factory()->create();
+        $memberRole = Role::firstOrCreate(['role' => 'member']);
+        $user->roles()->attach($memberRole->id);
+        Sanctum::actingAs($user);
+        DB::table('representation_reservation')->delete();
+        DB::table('representations')->delete();
+        DB::table('artist_type_show')->delete();
+        DB::table('price_show')->delete();
+        DB::table('reviews')->delete();
+        Show::query()->delete();
+        Show::factory()->count(3)->create();
 
-    $response = $this->getJson('/api/shows');
+        $response = $this->getJson('/api/shows');
 
-    $response->assertStatus(200)
-             ->assertJsonCount(3, 'data');
-}
-
+        $response->assertStatus(200)
+            ->assertJsonCount(3, 'data');
+    }
 
     public function test_admin_can_create_a_show()
     {
@@ -64,7 +64,7 @@ class ShowControllerTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['data' => ['title' => 'New Show']]);
+            ->assertJson(['data' => ['title' => 'New Show']]);
     }
 
     public function test_guest_cannot_create_a_show()

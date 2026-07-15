@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -27,8 +26,6 @@ return new class extends Migration
 
             $table->unique('login', 'users_login_unique');
         });
-
-        DB::statement('ALTER TABLE users MODIFY COLUMN firstname VARCHAR(60)');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

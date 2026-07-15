@@ -65,6 +65,7 @@ function formatDate(dateStr) {
                 :src="`/images/${repr.show.poster_url}`"
                 :alt="repr.show.title"
                 class="w-full h-full object-cover"
+                @error="repr.show.poster_url = null"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <svg class="w-12 h-12 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

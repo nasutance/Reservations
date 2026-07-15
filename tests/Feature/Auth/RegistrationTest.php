@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use Laravel\Sanctum\Sanctum;
 
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');

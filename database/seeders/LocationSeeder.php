@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Location;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use App\Models\Location;
-use App\Models\Locality;
 
 class LocationSeeder extends Seeder
 {
@@ -17,9 +16,9 @@ class LocationSeeder extends Seeder
     public function run(): void
     {
         // Empty the table first
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         Location::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1'); 
+        Schema::enableForeignKeyConstraints();
 
         // Define data
         $locations = [

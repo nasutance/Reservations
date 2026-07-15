@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
-use App\Models\User;
 
 class UserSeeder extends Seeder
 {
@@ -20,9 +20,9 @@ class UserSeeder extends Seeder
     public function run()
     {
         // Vider la table users
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         User::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         // Définir les utilisateurs de test sans rôle
         $users = [

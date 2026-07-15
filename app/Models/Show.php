@@ -6,8 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Le modèle Show représente un spectacle (pièce de théâtre, performance, etc.)
@@ -86,4 +86,11 @@ class Show extends Model
         return $this->belongsToMany(Price::class);
     }
 
+    /**
+     * Relation N-N : un spectacle peut être classé sous plusieurs tags (humour, drame, etc.)
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'show_tag');
+    }
 }

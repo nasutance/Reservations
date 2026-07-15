@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use App\Models\Location;
 use App\Models\Show;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class ShowSeeder extends Seeder
 {
@@ -16,18 +16,18 @@ class ShowSeeder extends Seeder
      */
     public function run(): void
     {
-      //Empty the table first
-      DB::statement('SET FOREIGN_KEY_CHECKS=0');
-      Show::truncate();
-      DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        //Empty the table first
+        Schema::disableForeignKeyConstraints();
+        Show::truncate();
+        Schema::enableForeignKeyConstraints();
 
-      // Define data
+        // Define data
         $data = [
             [
                 'slug' => null,
                 'title' => 'Ayiti',
-                'description' => "Un homme est bloqué à l’aéroport.\n" .
-                    'Questionné par les douaniers, il doit alors justifier son identité, ' .
+                'description' => "Un homme est bloqué à l’aéroport.\n".
+                    'Questionné par les douaniers, il doit alors justifier son identité, '.
                     'et surtout prouver qu\'il est haïtien – qu\'est-ce qu\'être haïtien ?',
                 'poster_url' => 'ayiti.jpg',
                 'duration' => 90,
@@ -38,7 +38,7 @@ class ShowSeeder extends Seeder
             [
                 'slug' => null,
                 'title' => 'Cible mouvante',
-                'description' => 'Dans ce « thriller d’anticipation », des adultes semblent alimenter ' .
+                'description' => 'Dans ce « thriller d’anticipation », des adultes semblent alimenter '.
                     'et véhiculer une crainte féroce envers les enfants âgés entre 10 et 12 ans.',
                 'poster_url' => 'cible.jpg',
                 'duration' => 90,
@@ -49,9 +49,9 @@ class ShowSeeder extends Seeder
             [
                 'slug' => null,
                 'title' => 'Ceci n\'est pas un chanteur belge',
-                'description' => "Non peut-être ?!\nEntre Magritte (pour le surréalisme comique) " .
-                    'et Maigret (pour le réalisme mélancolique), ce dixième opus semalien propose ' .
-                    'quatorze nouvelles chansons mêlées à de petits textes humoristiques et ' .
+                'description' => "Non peut-être ?!\nEntre Magritte (pour le surréalisme comique) ".
+                    'et Maigret (pour le réalisme mélancolique), ce dixième opus semalien propose '.
+                    'quatorze nouvelles chansons mêlées à de petits textes humoristiques et '.
                     'à quelques fortes images poétiques.',
                 'poster_url' => 'claudebelgesaison220.jpg',
                 'duration' => 90,
@@ -62,7 +62,7 @@ class ShowSeeder extends Seeder
             [
                 'slug' => null,
                 'title' => 'Manneke… !',
-                'description' => 'A tour de rôle, Pierre se joue de ses oncles, ' .
+                'description' => 'A tour de rôle, Pierre se joue de ses oncles, '.
                     'tantes, grands-parents et surtout de sa mère.',
                 'poster_url' => 'wayburn.jpg',
                 'duration' => 90,

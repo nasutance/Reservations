@@ -1,25 +1,17 @@
 <?php
 
+use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PriceController;
+// Importation des contrôleurs utilisés
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RepresentationController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ShowController;
+use App\Http\Controllers\UserController;
+use App\Models\Representation;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Models\Representation;
-
-// Importation des contrôleurs utilisés
-use App\Http\Controllers\{
-    FeedController,
-    ProfileController,
-    ArtistController,
-    TypeController,
-    PriceController,
-    LocalityController,
-    RoleController,
-    LocationController,
-    ShowController,
-    RepresentationController,
-    ReservationController,
-    DashboardController,
-    UserController
-};
 
 // ====================
 // Flux RSS (package Spatie)
@@ -56,24 +48,19 @@ Route::middleware('auth')->group(function () {
 });
 
 // ====================
-// Ressources RESTful classiques
+// Catalogue des spectacles (public)
 // ====================
-Route::resources([
-    'artist'         => ArtistController::class,
-    'type'           => TypeController::class,
-    'price'          => PriceController::class,
-    'locality'       => LocalityController::class,
-    'role'           => RoleController::class,
-    'show'           => ShowController::class,
-    'location'       => LocationController::class,
-    'representation' => RepresentationController::class,
-]);
+Route::resource('show', ShowController::class)->only(['index', 'show']);
 
 // ====================
-// Ressource "user" (authentifié) — sans création ni insertion
+// Gestion du contenu (authentifié — les policies restreignent aux admins)
 // ====================
 Route::middleware('auth')->group(function () {
-    Route::resource('users', UserController::class)->except(['create', 'store']);
+    Route::resource('show', ShowController::class)->only(['update', 'destroy']);
+    Route::resource('artist', ArtistController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('price', PriceController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('representation', RepresentationController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('users', UserController::class)->only(['update', 'destroy']);
 });
 
 // ====================
@@ -91,7 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/reservation/{reservation}/add-line', [ReservationController::class, 'addLine'])->name('reservation.addLine');
 
     // Supprimer une ligne d’une réservation
-    Route::delete('/reservation/{reservation}/line/{representation}/{price}', [ReservationController::class, 'destroyLine']);
+    Route::delete('/reservation/{reservation}/line/{representation}/{price}', [ReservationController::class, 'destroyLine'])->name('reservation.destroyLine');
 });
 
 // ====================

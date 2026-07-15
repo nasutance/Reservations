@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Location;
-use App\Models\Show;
 use App\Models\Representation;
-use Laravel\Sanctum\Sanctum;
+use App\Models\Role;
+use App\Models\Show;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class RepresentationControllerTest extends TestCase
@@ -21,24 +21,25 @@ class RepresentationControllerTest extends TestCase
         $user = User::factory()->create();
         $adminRole = Role::firstOrCreate(['role' => 'admin']);
         $user->roles()->attach($adminRole->id);
+
         return $user;
     }
 
     public function test_user_can_get_all_representations()
-  {
-      $user = User::factory()->create();
-      Sanctum::actingAs($user);
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
 
-      DB::table('representation_reservation')->delete();
-Representation::query()->delete();
+        DB::table('representation_reservation')->delete();
+        Representation::query()->delete();
 
-      Representation::factory()->count(5)->create();
+        Representation::factory()->count(5)->create();
 
-      $response = $this->getJson('/api/representations');
+        $response = $this->getJson('/api/representations');
 
-      $response->assertStatus(200)
-               ->assertJsonCount(5, 'data');
-  }
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+    }
 
     public function test_admin_can_create_a_representation()
     {
@@ -55,7 +56,7 @@ Representation::query()->delete();
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson(['data' => ['schedule' => '2024-05-01T20:00:00.000000Z']]);
+            ->assertJson(['data' => ['schedule' => '2024-05-01T20:00:00.000000Z']]);
     }
 
     public function test_guest_cannot_create_a_representation()

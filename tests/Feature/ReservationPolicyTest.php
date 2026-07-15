@@ -21,6 +21,7 @@ class ReservationPolicyTest extends TestCase
     {
         $user = User::factory()->create();
         $user->roles()->attach(Role::firstOrCreate(['role' => $role])->id);
+
         return $user;
     }
 
@@ -30,23 +31,23 @@ class ReservationPolicyTest extends TestCase
 
     public function test_admin_can_list_all_reservations()
     {
-        $admin  = $this->createUserWithRole('admin');
+        $admin = $this->createUserWithRole('admin');
         $member = $this->createUserWithRole('member');
         Reservation::factory()->count(2)->create(['user_id' => $member->id]);
 
         Sanctum::actingAs($admin);
-        $this->getJson('/api/reservations')->assertStatus(200)->assertJsonCount(2);
+        $this->getJson('/api/reservations')->assertStatus(200)->assertJsonCount(2, 'data');
     }
 
     public function test_member_only_sees_own_reservations()
     {
         $member = $this->createUserWithRole('member');
-        $other  = $this->createUserWithRole('member');
+        $other = $this->createUserWithRole('member');
         Reservation::factory()->create(['user_id' => $member->id]);
         Reservation::factory()->create(['user_id' => $other->id]);
 
         Sanctum::actingAs($member);
-        $this->getJson('/api/reservations')->assertStatus(200)->assertJsonCount(1);
+        $this->getJson('/api/reservations')->assertStatus(200)->assertJsonCount(1, 'data');
     }
 
     // -------------------------------------------------------------------------
@@ -55,7 +56,7 @@ class ReservationPolicyTest extends TestCase
 
     public function test_member_can_view_own_reservation()
     {
-        $member      = $this->createUserWithRole('member');
+        $member = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $member->id]);
 
         Sanctum::actingAs($member);
@@ -64,8 +65,8 @@ class ReservationPolicyTest extends TestCase
 
     public function test_member_cannot_view_another_users_reservation()
     {
-        $member      = $this->createUserWithRole('member');
-        $other       = $this->createUserWithRole('member');
+        $member = $this->createUserWithRole('member');
+        $other = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $other->id]);
 
         Sanctum::actingAs($member);
@@ -74,8 +75,8 @@ class ReservationPolicyTest extends TestCase
 
     public function test_admin_can_view_any_reservation()
     {
-        $admin       = $this->createUserWithRole('admin');
-        $member      = $this->createUserWithRole('member');
+        $admin = $this->createUserWithRole('admin');
+        $member = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $member->id]);
 
         Sanctum::actingAs($admin);
@@ -88,11 +89,11 @@ class ReservationPolicyTest extends TestCase
 
     public function test_member_can_create_reservation()
     {
-        $member         = $this->createUserWithRole('member');
-        $location       = Location::factory()->create();
-        $show           = Show::factory()->create(['location_id' => $location->id]);
+        $member = $this->createUserWithRole('member');
+        $location = Location::factory()->create();
+        $show = Show::factory()->create(['location_id' => $location->id]);
         $representation = Representation::factory()->create([
-            'show_id'     => $show->id,
+            'show_id' => $show->id,
             'location_id' => $location->id,
         ]);
         $price = Price::factory()->create();
@@ -101,18 +102,18 @@ class ReservationPolicyTest extends TestCase
         Sanctum::actingAs($member);
         $this->postJson('/api/reservations', [
             'representation_id' => $representation->id,
-            'price_id'          => $price->id,
-            'quantity'          => 2,
+            'price_id' => $price->id,
+            'quantity' => 2,
         ])->assertStatus(201);
     }
 
     public function test_affiliate_can_create_reservation()
     {
-        $affiliate      = $this->createUserWithRole('affiliate');
-        $location       = Location::factory()->create();
-        $show           = Show::factory()->create(['location_id' => $location->id]);
+        $affiliate = $this->createUserWithRole('affiliate');
+        $location = Location::factory()->create();
+        $show = Show::factory()->create(['location_id' => $location->id]);
         $representation = Representation::factory()->create([
-            'show_id'     => $show->id,
+            'show_id' => $show->id,
             'location_id' => $location->id,
         ]);
         $price = Price::factory()->create();
@@ -121,22 +122,22 @@ class ReservationPolicyTest extends TestCase
         Sanctum::actingAs($affiliate);
         $this->postJson('/api/reservations', [
             'representation_id' => $representation->id,
-            'price_id'          => $price->id,
-            'quantity'          => 1,
+            'price_id' => $price->id,
+            'quantity' => 1,
         ])->assertStatus(201);
     }
 
     public function test_admin_without_member_role_cannot_create_reservation()
     {
-        $admin          = $this->createUserWithRole('admin');
+        $admin = $this->createUserWithRole('admin');
         $representation = Representation::factory()->create();
-        $price          = Price::factory()->create();
+        $price = Price::factory()->create();
 
         Sanctum::actingAs($admin);
         $this->postJson('/api/reservations', [
             'representation_id' => $representation->id,
-            'price_id'          => $price->id,
-            'quantity'          => 1,
+            'price_id' => $price->id,
+            'quantity' => 1,
         ])->assertStatus(403);
     }
 
@@ -146,7 +147,7 @@ class ReservationPolicyTest extends TestCase
 
     public function test_owner_can_cancel_own_reservation()
     {
-        $member      = $this->createUserWithRole('member');
+        $member = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $member->id]);
 
         Sanctum::actingAs($member);
@@ -155,8 +156,8 @@ class ReservationPolicyTest extends TestCase
 
     public function test_member_cannot_cancel_another_users_reservation()
     {
-        $member      = $this->createUserWithRole('member');
-        $other       = $this->createUserWithRole('member');
+        $member = $this->createUserWithRole('member');
+        $other = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $other->id]);
 
         Sanctum::actingAs($member);
@@ -165,8 +166,8 @@ class ReservationPolicyTest extends TestCase
 
     public function test_admin_can_cancel_any_reservation()
     {
-        $admin       = $this->createUserWithRole('admin');
-        $member      = $this->createUserWithRole('member');
+        $admin = $this->createUserWithRole('admin');
+        $member = $this->createUserWithRole('member');
         $reservation = Reservation::factory()->create(['user_id' => $member->id]);
 
         Sanctum::actingAs($admin);

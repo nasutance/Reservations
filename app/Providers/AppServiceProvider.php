@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * AppServiceProvider est chargé d'enregistrer et de configurer les services globaux de l'application.
@@ -28,14 +27,8 @@ class AppServiceProvider extends ServiceProvider
         // 🔒 Environnement sécurisé :
         // Si l'application est en production, on force toutes les URL à utiliser HTTPS
         // Cela évite que les liens générés soient en HTTP non sécurisé.
-        if (env('APP_ENV') === 'production') {
+        if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }
-
-        // 🔁 Chargement manuel du fichier de routes API (optionnel)
-        // Normalement géré automatiquement par Laravel, mais on peut l'ajouter ici pour s'assurer qu'il est bien inclus.
-        Route::middleware('api')            // On applique le middleware "api"
-            ->prefix('api')                 // Préfixe de l'URL pour toutes les routes concernées
-            ->group(base_path('routes/api.php')); // On charge les routes du fichier api.php
     }
 }

@@ -1,16 +1,14 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-
-// Contrôleurs API
 use App\Http\Controllers\API\ArtistController;
-use App\Http\Controllers\API\ShowController;
-use App\Http\Controllers\API\ReservationController;
 use App\Http\Controllers\API\RepresentationController;
-use App\Http\Controllers\ImportExternalDataController;
+use App\Http\Controllers\API\ReservationController;
+use App\Http\Controllers\API\ShowController;
+// Contrôleurs API
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,14 +20,14 @@ use App\Http\Controllers\ImportExternalDataController;
 // Route de connexion utilisateur - Retourne un token en cas de succès
 Route::post('/login', function (Request $request) {
     $request->validate([
-        'email'    => 'required|email',
+        'email' => 'required|email',
         'password' => 'required',
     ]);
 
     $user = User::where('email', $request->email)->first();
 
     // Vérifie les identifiants
-    if (!$user || !Hash::check($request->password, $user->password)) {
+    if (! $user || ! Hash::check($request->password, $user->password)) {
         return response()->json(['message' => 'Identifiants invalides'], 401);
     }
 
@@ -50,7 +48,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Création d’un nouveau token à partir d’un nom fourni
     Route::post('/tokens/create', function (Request $request) {
-        $token = $request->user()->createToken($request->token_name);
+        $validated = $request->validate([
+            'token_name' => 'required|string|max:255',
+        ]);
+
+        $token = $request->user()->createToken($validated['token_name']);
+
         return ['token' => $token->plainTextToken];
     });
 
@@ -71,15 +74,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reservations', ReservationController::class);
     Route::apiResource('representations', RepresentationController::class);
 });
-
-/*
-|--------------------------------------------------------------------------
-| Routes d’importation de données externes
-|--------------------------------------------------------------------------
-| Ces routes permettent d’importer des données XML ou CSV via un contrôleur.
-*/
-
-Route::post('/import-localities',        [ImportExternalDataController::class, 'importLocalities']);
-Route::post('/import-locations',         [ImportExternalDataController::class, 'importLocations']);
-Route::post('/import-shows',             [ImportExternalDataController::class, 'importShows']);
-Route::post('/import-representations',   [ImportExternalDataController::class, 'importRepresentations']);

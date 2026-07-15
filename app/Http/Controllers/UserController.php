@@ -3,21 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    /**
-     * Affiche la liste des utilisateurs avec leurs rôles dans le tableau de bord admin.
-     * Utilise Inertia pour rendre une vue Vue.js (ex: resources/js/Pages/dashboard.vue).
-     */
-    public function index()
-    {
-        return Inertia::render('dashboard', [
-            'users' => User::with('roles')->get() // Chargement eager des rôles liés
-        ]);
-    }
+    use AuthorizesRequests;
 
     /**
      * Met à jour les informations d’un utilisateur ainsi que ses rôles.
@@ -25,6 +17,8 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+
         // Validation des données du formulaire
         $validated = $request->validate([
             'firstname' => 'required|string|max:60',
@@ -38,19 +32,22 @@ class UserController extends Controller
         // Mise à jour de l’utilisateur avec les données validées
         $user->update($validated);
 
-        // Synchronisation des rôles (remplace les rôles existants)
-        $user->roles()->sync($validated['roles'] ?? []);
+        // Seul un admin peut modifier les rôles : un utilisateur ne peut pas s'auto-promouvoir
+        if ($request->user()->hasRole('admin')) {
+            $user->roles()->sync($validated['roles'] ?? []);
+        }
 
         // Redirection vers le tableau de bord (Inertia)
         return Inertia::location('/dashboard');
     }
 
     /**
-     * Supprime un utilisateur de la base de données.
-     * ⚠ À sécuriser si des dépendances (réservations, commentaires) existent.
+     * Supprime (logiquement) un utilisateur.
      */
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
+
         $user->delete();
 
         return Inertia::location('/dashboard');

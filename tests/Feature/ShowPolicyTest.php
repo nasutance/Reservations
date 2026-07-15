@@ -18,6 +18,7 @@ class ShowPolicyTest extends TestCase
     {
         $user = User::factory()->create();
         $user->roles()->attach(Role::firstOrCreate(['role' => $role])->id);
+
         return $user;
     }
 
@@ -59,14 +60,14 @@ class ShowPolicyTest extends TestCase
         Sanctum::actingAs($this->createUserWithRole('admin'));
 
         $this->postJson('/api/shows', [
-            'title'       => 'Nouveau spectacle',
-            'slug'        => 'nouveau-spectacle',
+            'title' => 'Nouveau spectacle',
+            'slug' => 'nouveau-spectacle',
             'description' => 'Une description',
-            'poster_url'  => 'https://example.com/poster.jpg',
-            'duration'    => 90,
-            'created_in'  => 2024,
+            'poster_url' => 'https://example.com/poster.jpg',
+            'duration' => 90,
+            'created_in' => 2024,
             'location_id' => $location->id,
-            'bookable'    => true,
+            'bookable' => true,
         ])->assertStatus(201);
     }
 
@@ -76,14 +77,14 @@ class ShowPolicyTest extends TestCase
         Sanctum::actingAs($this->createUserWithRole('member'));
 
         $this->postJson('/api/shows', [
-            'title'       => 'Spectacle non autorisé',
-            'slug'        => 'spectacle-non-autorise',
+            'title' => 'Spectacle non autorisé',
+            'slug' => 'spectacle-non-autorise',
             'description' => 'Une description',
-            'poster_url'  => 'https://example.com/poster.jpg',
-            'duration'    => 90,
-            'created_in'  => 2024,
+            'poster_url' => 'https://example.com/poster.jpg',
+            'duration' => 90,
+            'created_in' => 2024,
             'location_id' => $location->id,
-            'bookable'    => true,
+            'bookable' => true,
         ])->assertStatus(403);
     }
 
@@ -94,7 +95,7 @@ class ShowPolicyTest extends TestCase
     public function test_admin_can_update_show()
     {
         $admin = $this->createUserWithRole('admin');
-        $show  = Show::factory()->create();
+        $show = Show::factory()->create();
 
         Sanctum::actingAs($admin);
         $this->putJson("/api/shows/{$show->id}", [
@@ -105,7 +106,7 @@ class ShowPolicyTest extends TestCase
     public function test_member_cannot_update_show()
     {
         $member = $this->createUserWithRole('member');
-        $show   = Show::factory()->create();
+        $show = Show::factory()->create();
 
         Sanctum::actingAs($member);
         $this->putJson("/api/shows/{$show->id}", [
@@ -120,7 +121,7 @@ class ShowPolicyTest extends TestCase
     public function test_admin_can_delete_show()
     {
         $admin = $this->createUserWithRole('admin');
-        $show  = Show::factory()->create();
+        $show = Show::factory()->create();
 
         Sanctum::actingAs($admin);
         $this->deleteJson("/api/shows/{$show->id}")->assertStatus(200);
@@ -129,7 +130,7 @@ class ShowPolicyTest extends TestCase
     public function test_member_cannot_delete_show()
     {
         $member = $this->createUserWithRole('member');
-        $show   = Show::factory()->create();
+        $show = Show::factory()->create();
 
         Sanctum::actingAs($member);
         $this->deleteJson("/api/shows/{$show->id}")->assertStatus(403);

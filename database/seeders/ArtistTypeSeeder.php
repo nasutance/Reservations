@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\ArtistType;
 use App\Models\Artist;
 use App\Models\Type;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ArtistTypeSeeder extends Seeder
 {
@@ -17,9 +16,9 @@ class ArtistTypeSeeder extends Seeder
     public function run(): void
     {
         // Empty the table first
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
         DB::table('artist_type')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         // Define data
         $data = [
